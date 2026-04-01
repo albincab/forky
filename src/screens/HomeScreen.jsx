@@ -44,6 +44,10 @@ export default function HomeScreen({ t, onCreate, onJoin }) {
           />
         </>
       )}
+
+      <p className="text-center text-muted" style={{ fontSize: '0.72rem', marginTop: 'auto' }}>
+        v{__APP_VERSION__}
+      </p>
     </div>
   )
 }
