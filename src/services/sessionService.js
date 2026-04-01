@@ -36,7 +36,8 @@ function buildSession(row, participants = []) {
       cuisines:       p.cuisines       ?? [],
       budget:         p.budget         ?? null,
       allergies:      p.allergies      ?? [],
-      lunchDuration:  p.lunch_duration ?? null,
+      moreThanOneHour: p.more_than_one_hour ?? false,
+      backBy14h:       p.back_by_14h       ?? false,
       prefsComplete:  p.prefs_complete,
       joinedAt:       new Date(p.joined_at).getTime(),
     })),
@@ -156,7 +157,8 @@ export async function updateParticipantPrefs({ code, participantId, prefs }) {
       cuisines:       prefs.cuisines      ?? [],
       budget:         prefs.budget        ?? null,
       allergies:      prefs.allergies     ?? [],
-      lunch_duration: prefs.lunchDuration ?? null,
+      more_than_one_hour: prefs.moreThanOneHour ?? false,
+      back_by_14h:        prefs.backBy14h       ?? false,
       prefs_complete: true,
     })
     .eq('id', participantId)

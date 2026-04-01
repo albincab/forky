@@ -442,33 +442,31 @@ p  { color: var(--text-muted); font-size: 0.9rem; }
   width: fit-content;
 }
 
-/* Time constraint toggle */
-.time-toggle {
+/* Preference toggle (binary checkbox-style) */
+.pref-toggle {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px;
-  border-radius: var(--r-card);
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
   border: 2px solid var(--sand);
   background: var(--white);
   cursor: pointer;
   transition: border-color var(--transition), background var(--transition);
   text-align: left;
 }
-.time-toggle:hover { border-color: var(--honey); }
-.time-toggle.active { border-color: var(--brown); background: var(--sand); }
-.time-toggle-icon { font-size: 1.75rem; line-height: 1; flex-shrink: 0; }
-.time-toggle-text { flex: 1; }
-.time-toggle-title { font-weight: 600; color: var(--brown); font-size: 0.95rem; }
-.time-toggle-desc  { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
-.time-toggle-check {
+.pref-toggle:hover { border-color: var(--honey); background: var(--golden); }
+.pref-toggle.active { border-color: var(--brown); background: var(--sand); }
+.pref-toggle-icon  { font-size: 1.25rem; line-height: 1; flex-shrink: 0; }
+.pref-toggle-label { flex: 1; font-weight: 500; color: var(--brown); font-size: 0.95rem; }
+.pref-toggle-check {
   font-weight: 700;
   color: var(--success);
-  font-size: 1.1rem;
+  font-size: 1rem;
   opacity: 0;
   transition: opacity var(--transition);
 }
-.time-toggle.active .time-toggle-check { opacity: 1; }
+.pref-toggle.active .pref-toggle-check { opacity: 1; }
 
 /* ─── Participant card ────────────────────────────────────────────────────── */
 .participant-card {

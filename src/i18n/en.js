@@ -60,13 +60,9 @@ export default {
   inPlaceSkipMsg: "No restaurant search for you — we'll keep you posted!",
 
   // Lunch duration
-  lunchDurationLabel: 'Lunch break length',
-  lunchDurationOptions: {
-    '<30':   '⚡ < 30 min',
-    '30-45': '🕐 30–45 min',
-    '45-60': '🕑 45–60 min',
-    '>60':   '🕒 1h+',
-  },
+  lunchDurationLabel: 'Lunch break',
+  moreThanOneHour: 'I have more than 1 hour',
+  backBy14h: 'I need to be back before 2pm',
 
   // Delete session
   deleteSession: 'Delete lunch',

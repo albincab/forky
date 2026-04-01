@@ -61,12 +61,8 @@ export default {
 
   // Lunch duration
   lunchDurationLabel: 'Temps de pause',
-  lunchDurationOptions: {
-    '<30':   '⚡ < 30 min',
-    '30-45': '🕐 30–45 min',
-    '45-60': '🕑 45–60 min',
-    '>60':   '🕒 1h+',
-  },
+  moreThanOneHour: "J'ai plus d'1h",
+  backBy14h: 'Je dois être de retour avant 14h',
 
   // Delete session
   deleteSession: 'Supprimer le déjeuner',
