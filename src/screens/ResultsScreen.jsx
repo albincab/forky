@@ -61,8 +61,8 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
   }
 
   const { results, participants } = session
-  const homemadeGroup = participants.filter(p => p.mealMode === 'homemade')
-  const hasAny = results?.out?.length > 0 || results?.takeout?.length > 0
+  const inplaceGroup = participants.filter(p => p.mealMode === 'inplace')
+  const hasAny = results?.out?.length > 0
 
   return (
     <div className="screen">
@@ -71,11 +71,11 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
         <button className="btn-ghost" onClick={onLeave}>✕</button>
       </div>
 
-      {/* Gamelle gang */}
-      {homemadeGroup.length > 0 && (
+      {/* Sur place */}
+      {inplaceGroup.length > 0 && (
         <div className="summary-bar" style={{ justifyContent: 'center' }}>
           <span className="summary-item">
-            🥡 {homemadeGroup.map(p => p.name).join(', ')} — {t.homemadeMsg}
+            🏠 {inplaceGroup.map(p => p.name).join(', ')} — {t.inPlaceMsg}
           </span>
         </div>
       )}
@@ -84,13 +84,7 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
         <div className="waiting-banner"><p>{t.noResults}</p></div>
       )}
 
-      <ResultSection title={t.sectionOut}     restaurants={results?.out}     t={t} />
-
-      {results?.out?.length > 0 && results?.takeout?.length > 0 && (
-        <div className="divider" />
-      )}
-
-      <ResultSection title={t.sectionTakeout} restaurants={results?.takeout} t={t} />
+      <ResultSection title={t.sectionOut} restaurants={results?.out} t={t} />
 
       <div className="mt-auto flex-col">
         <button className="btn btn-secondary" onClick={onBackToWaiting}>

@@ -56,14 +56,21 @@ export default {
   mealOutDesc: 'Restaurant with the group',
   mealInPlace: 'Staying in',
   mealInPlaceDesc: 'Packed lunch, desk or solo — no search needed',
-  mealTakeout: 'Takeout',
-  mealTakeoutDesc: 'Looking to order / get delivery',
   inPlaceMsg: 'Enjoy your lunch! 🥡',
   inPlaceSkipMsg: "No restaurant search for you — we'll keep you posted!",
 
-  // Time constraint
-  timeConstraintLabel: 'Time constraint',
-  timeConstraintDesc: 'I need to be back quickly (< 45 min)',
+  // Lunch duration
+  lunchDurationLabel: 'Lunch break length',
+  lunchDurationOptions: {
+    '<30':   '⚡ < 30 min',
+    '30-45': '🕐 30–45 min',
+    '45-60': '🕑 45–60 min',
+    '>60':   '🕒 1h+',
+  },
+
+  // Delete session
+  deleteSession: 'Delete lunch',
+  deleteConfirm: 'Permanently delete this lunch? All participants will be removed.',
 
   // Cuisines
   cuisineTitle: 'What are you in the mood for?',
@@ -89,9 +96,8 @@ export default {
   waitingEmpty: 'Quiet in here… share the code!',
   waitingParticipant: "{name} will pick when everyone's in",
   waitingYourPrefs: 'Waiting for the organizer to launch…',
-  groupSummary: '{out} going out · {takeout} takeout · {homemade} homemade',
+  groupSummary: '{out} going out · {inplace} staying in',
   launchSearchOut: '🍽️ Find a restaurant',
-  launchSearchTakeout: '📦 Find takeout',
   searching: 'Searching…',
   searchDone: 'Results ready!',
   viewResults: 'View results',

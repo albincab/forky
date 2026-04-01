@@ -3,10 +3,11 @@ import {
   getSessionsHistory,
   getSession,
   leaveSession,
+  deleteSession,
   removeFromHistory,
 } from '../services/sessionService.js'
 
-const MEAL_ICONS = { out: '🍽️', homemade: '🥡', takeout: '📦' }
+const MEAL_ICONS = { out: '🍽️', inplace: '🏠' }
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ session, participant, t }) {
@@ -21,14 +22,13 @@ function StatusBadge({ session, participant, t }) {
 }
 
 // ─── Single session card ──────────────────────────────────────────────────────
-function LunchCard({ entry, t, onRejoin, onEdit, onCancel }) {
+function LunchCard({ entry, t, onRejoin, onEdit, onCancel, onDelete }) {
   const { session, participant, isOrganizer } = entry
-  const searchLaunched = session.searchedOut || session.searchedTakeout
-  const hasResults = session.results?.out?.length > 0 || session.results?.takeout?.length > 0
+  const searchLaunched = session.searchedOut
+  const hasResults = session.results?.out?.length > 0
 
-  const outCount     = session.participants.filter(p => p.mealMode === 'out').length
-  const takeoutCount = session.participants.filter(p => p.mealMode === 'takeout').length
-  const homemadeCount = session.participants.filter(p => p.mealMode === 'homemade').length
+  const outCount      = session.participants.filter(p => p.mealMode === 'out').length
+  const inplaceCount  = session.participants.filter(p => p.mealMode === 'inplace').length
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -56,10 +56,12 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel }) {
       {/* Group summary */}
       <div className="summary-bar" style={{ padding: '8px 12px' }}>
         <span className="summary-item" style={{ fontSize: '0.8rem' }}>🍽️ {outCount}</span>
-        <span style={{ color: 'var(--text-muted)' }}>·</span>
-        <span className="summary-item" style={{ fontSize: '0.8rem' }}>📦 {takeoutCount}</span>
-        <span style={{ color: 'var(--text-muted)' }}>·</span>
-        <span className="summary-item" style={{ fontSize: '0.8rem' }}>🥡 {homemadeCount}</span>
+        {inplaceCount > 0 && (
+          <>
+            <span style={{ color: 'var(--text-muted)' }}>·</span>
+            <span className="summary-item" style={{ fontSize: '0.8rem' }}>🏠 {inplaceCount}</span>
+          </>
+        )}
         <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginLeft: 4 }}>
           · {session.participants.length} pers.
         </span>
@@ -69,8 +71,8 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel }) {
       {participant?.prefsComplete && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {participant.mealMode && (
-            <span className={`tag ${participant.mealMode === 'out' ? 'tag-out' : participant.mealMode === 'takeout' ? 'tag-takeout' : 'tag-homemade'}`}>
-              {MEAL_ICONS[participant.mealMode]} {t[participant.mealMode === 'out' ? 'mealOut' : participant.mealMode === 'takeout' ? 'mealTakeout' : 'mealHomemade']}
+            <span className={`tag ${participant.mealMode === 'out' ? 'tag-out' : 'tag-homemade'}`}>
+              {MEAL_ICONS[participant.mealMode]} {t[participant.mealMode === 'out' ? 'mealOut' : 'mealInPlace']}
             </span>
           )}
           {participant.cuisines?.slice(0, 2).map(c => (
@@ -97,14 +99,19 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel }) {
 
         {!searchLaunched && (
           <>
-            <button
-              className="btn-icon"
-              onClick={() => onEdit(entry)}
-            >
+            <button className="btn-icon" onClick={() => onEdit(entry)}>
               ✏️ {t.editPrefs}
             </button>
 
-            {!isOrganizer && (
+            {isOrganizer ? (
+              <button
+                className="btn-icon"
+                style={{ color: 'var(--error)', borderColor: 'var(--error)' }}
+                onClick={() => onDelete(entry)}
+              >
+                🗑️ {t.deleteSession}
+              </button>
+            ) : (
               <button
                 className="btn-icon"
                 style={{ color: 'var(--error)', borderColor: 'var(--error)' }}
@@ -149,6 +156,13 @@ export default function MyLunchesScreen({ t, onBack, onRejoin, onEdit }) {
     await load()
   }
 
+  async function handleDelete(entry) {
+    if (!window.confirm(t.deleteConfirm)) return
+    await deleteSession(entry.session.code)
+    removeFromHistory(entry.session.code)
+    await load()
+  }
+
   return (
     <div className="screen">
       <div className="flex-row">
@@ -178,6 +192,7 @@ export default function MyLunchesScreen({ t, onBack, onRejoin, onEdit }) {
               onRejoin={onRejoin}
               onEdit={onEdit}
               onCancel={handleCancel}
+              onDelete={handleDelete}
             />
           ))}
         </div>

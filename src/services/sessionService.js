@@ -36,7 +36,7 @@ function buildSession(row, participants = []) {
       cuisines:       p.cuisines       ?? [],
       budget:         p.budget         ?? null,
       allergies:      p.allergies      ?? [],
-      timeConstraint: p.time_constraint ?? false,
+      lunchDuration:  p.lunch_duration ?? null,
       prefsComplete:  p.prefs_complete,
       joinedAt:       new Date(p.joined_at).getTime(),
     })),
@@ -152,12 +152,12 @@ export async function updateParticipantPrefs({ code, participantId, prefs }) {
   const { error } = await supabase
     .from('participants')
     .update({
-      meal_mode:       prefs.mealMode        ?? null,
-      cuisines:        prefs.cuisines        ?? [],
-      budget:          prefs.budget          ?? null,
-      allergies:       prefs.allergies       ?? [],
-      time_constraint: prefs.timeConstraint  ?? false,
-      prefs_complete:  true,
+      meal_mode:      prefs.mealMode      ?? null,
+      cuisines:       prefs.cuisines      ?? [],
+      budget:         prefs.budget        ?? null,
+      allergies:      prefs.allergies     ?? [],
+      lunch_duration: prefs.lunchDuration ?? null,
+      prefs_complete: true,
     })
     .eq('id', participantId)
     .eq('session_code', code)
@@ -273,4 +273,14 @@ export function subscribeToSession(code, onChange) {
 /** Removes a Realtime channel subscription */
 export function unsubscribeFromSession(channel) {
   if (channel) supabase.removeChannel(channel)
+}
+
+/**
+ * Deletes a session and all its participants (organizer only).
+ */
+export async function deleteSession(code) {
+  // Delete participants first to avoid FK constraint issues
+  await supabase.from('participants').delete().eq('session_code', code)
+  const { error } = await supabase.from('sessions').delete().eq('code', code)
+  if (error) throw new Error(error.message)
 }

@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { updateParticipantPrefs, getSession } from '../services/sessionService.js'
 
 export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDone }) {
-  const [mealMode,       setMealMode]       = useState(null)
-  const [cuisines,       setCuisines]       = useState([])
-  const [budget,         setBudget]         = useState(null)
-  const [allergies,      setAllergies]      = useState([])
-  const [timeConstraint, setTimeConstraint] = useState(false)
-  const [error,          setError]          = useState('')
-  const [saving,         setSaving]         = useState(false)
-  const [loadingPrefs,   setLoadingPrefs]   = useState(true)
+  const [mealMode,      setMealMode]      = useState(null)
+  const [cuisines,      setCuisines]      = useState([])
+  const [budget,        setBudget]        = useState(null)
+  const [allergies,     setAllergies]     = useState([])
+  const [lunchDuration, setLunchDuration] = useState(null)
+  const [error,         setError]         = useState('')
+  const [saving,        setSaving]        = useState(false)
+  const [loadingPrefs,  setLoadingPrefs]  = useState(true)
 
   const nextSectionRef = useRef(null)
   const prevMealMode   = useRef(null)
@@ -24,14 +24,14 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
         setCuisines(participant.cuisines || [])
         setBudget(participant.budget)
         setAllergies(participant.allergies || [])
-        setTimeConstraint(participant.timeConstraint || false)
+        setLunchDuration(participant.lunchDuration || null)
       }
       setLoadingPrefs(false)
     }
     loadExisting()
   }, [sessionCode, userId])
 
-  // Scroll to next section when meal mode is first selected
+  // Auto-scroll to next section when mode first selected
   useEffect(() => {
     if (mealMode && !prevMealMode.current) {
       setTimeout(() => nextSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
@@ -39,7 +39,6 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
     prevMealMode.current = mealMode
   }, [mealMode])
 
-  // 'inplace' covers both homemade (gamelle) and eating solo on-site
   const isInPlace = mealMode === 'inplace'
 
   function toggleChip(list, setList, value) {
@@ -57,10 +56,10 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
         participantId: userId,
         prefs: {
           mealMode,
-          cuisines:       isInPlace ? [] : cuisines,
-          budget:         isInPlace ? null : budget,
+          cuisines:      isInPlace ? [] : cuisines,
+          budget:        isInPlace ? null : budget,
           allergies,
-          timeConstraint: isInPlace ? false : timeConstraint,
+          lunchDuration: isInPlace ? null : lunchDuration,
         },
       })
       onDone()
@@ -87,15 +86,14 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
         {/* ── Mode de repas ─────────────────────────────────────────── */}
         <div className="flex-col" style={{ gap: 10 }}>
           <h2>{t.step1Label}</h2>
           {[
-            { key: 'out',     icon: '🍽️', label: t.mealOut,     desc: t.mealOutDesc },
-            { key: 'takeout', icon: '📦', label: t.mealTakeout,  desc: t.mealTakeoutDesc },
-            { key: 'inplace', icon: '🏠', label: t.mealInPlace,  desc: t.mealInPlaceDesc },
+            { key: 'out',     icon: '🍽️', label: t.mealOut,    desc: t.mealOutDesc },
+            { key: 'inplace', icon: '🏠', label: t.mealInPlace, desc: t.mealInPlaceDesc },
           ].map(o => (
             <button
               key={o.key}
@@ -110,74 +108,74 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
                 <span className="meal-desc">{o.desc}</span>
               </span>
               {mealMode === o.key && (
-                <span aria-hidden="true" style={{ color: 'var(--success)', fontWeight: 700 }}>✓</span>
+                <span aria-hidden="true" style={{ color: 'var(--success)', fontWeight: 700, fontSize: '1.1rem' }}>✓</span>
               )}
             </button>
           ))}
           {error && <span className="error-msg" role="alert">⚠ {error}</span>}
         </div>
 
-        {/* ── Impératif de temps (masqué si sur place) ──────────────── */}
+        {/* ── Sections visibles uniquement si "Je sors manger" ─────── */}
         {!isInPlace && mealMode && (
-          <div className="flex-col" style={{ gap: 10 }} ref={nextSectionRef}>
-            <button
-              type="button"
-              className={`time-toggle ${timeConstraint ? 'active' : ''}`}
-              onClick={() => setTimeConstraint(v => !v)}
-              aria-pressed={timeConstraint}
-            >
-              <span className="time-toggle-icon" aria-hidden="true">⏱️</span>
-              <span className="time-toggle-text">
-                <span className="time-toggle-title">{t.timeConstraintLabel}</span>
-                <span className="time-toggle-desc">{t.timeConstraintDesc}</span>
-              </span>
-              <span className="time-toggle-check" aria-hidden="true">✓</span>
-            </button>
-          </div>
-        )}
-
-        {/* ── Cuisines (masqué si sur place) ────────────────────────── */}
-        {!isInPlace && mealMode && (
-          <div className="flex-col pref-section--reveal" style={{ gap: 10 }}>
-            <h2>{t.cuisineTitle}</h2>
-            <p style={{ marginTop: -6 }}>{t.cuisineSubtitle}</p>
-            <div className="chip-grid" role="group" aria-label={t.cuisineTitle}>
-              {t.cuisines.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`chip ${cuisines.includes(c) ? 'selected' : ''}`}
-                  onClick={() => toggleChip(cuisines, setCuisines, c)}
-                  aria-pressed={cuisines.includes(c)}
-                >
-                  <span aria-hidden="true">{t.cuisineEmojis[c]}</span> {c}
-                </button>
-              ))}
+          <>
+            {/* Durée de pause */}
+            <div className="flex-col" style={{ gap: 10 }} ref={nextSectionRef}>
+              <h2>{t.lunchDurationLabel}</h2>
+              <div className="budget-row" role="group" aria-label={t.lunchDurationLabel}>
+                {Object.entries(t.lunchDurationOptions).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`budget-pill ${lunchDuration === key ? 'selected' : ''}`}
+                    onClick={() => setLunchDuration(lunchDuration === key ? null : key)}
+                    aria-pressed={lunchDuration === key}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* ── Budget (masqué si sur place) ──────────────────────────── */}
-        {!isInPlace && mealMode && (
-          <div className="flex-col pref-section--reveal" style={{ gap: 10 }}>
-            <h2>{t.budgetTitle}</h2>
-            <div className="budget-row" role="group" aria-label={t.budgetTitle}>
-              {Object.entries(t.budgetOptions).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`budget-pill ${budget === key ? 'selected' : ''}`}
-                  onClick={() => setBudget(budget === key ? null : key)}
-                  aria-pressed={budget === key}
-                >
-                  {label}
-                </button>
-              ))}
+            {/* Cuisines */}
+            <div className="flex-col pref-section--reveal" style={{ gap: 10 }}>
+              <h2>{t.cuisineTitle}</h2>
+              <p style={{ marginTop: -6 }}>{t.cuisineSubtitle}</p>
+              <div className="chip-grid" role="group" aria-label={t.cuisineTitle}>
+                {t.cuisines.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`chip ${cuisines.includes(c) ? 'selected' : ''}`}
+                    onClick={() => toggleChip(cuisines, setCuisines, c)}
+                    aria-pressed={cuisines.includes(c)}
+                  >
+                    <span aria-hidden="true">{t.cuisineEmojis[c]}</span> {c}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Budget */}
+            <div className="flex-col pref-section--reveal" style={{ gap: 10 }}>
+              <h2>{t.budgetTitle}</h2>
+              <div className="budget-row" role="group" aria-label={t.budgetTitle}>
+                {Object.entries(t.budgetOptions).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`budget-pill ${budget === key ? 'selected' : ''}`}
+                    onClick={() => setBudget(budget === key ? null : key)}
+                    aria-pressed={budget === key}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
         )}
 
-        {/* ── Allergies (toujours visible après sélection du mode) ──── */}
+        {/* ── Allergies (toujours visible) ───────────────────────────── */}
         {mealMode && (
           <div className="flex-col pref-section--reveal" style={{ gap: 10 }}>
             <h2>{t.allergyTitle}</h2>

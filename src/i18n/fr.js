@@ -56,14 +56,21 @@ export default {
   mealOutDesc: 'Repas au restaurant avec le groupe',
   mealInPlace: 'Je reste sur place',
   mealInPlaceDesc: 'Gamelle, bureau ou repas solo — pas besoin de chercher',
-  mealTakeout: 'À emporter',
-  mealTakeoutDesc: 'Je cherche à commander / faire livrer',
   inPlaceMsg: 'Super, bon appétit ! 🥡',
   inPlaceSkipMsg: "Pas de recherche pour vous — on vous tient au courant !",
 
-  // Time constraint
-  timeConstraintLabel: 'Impératif de temps',
-  timeConstraintDesc: 'Je dois être de retour rapidement (< 45 min)',
+  // Lunch duration
+  lunchDurationLabel: 'Temps de pause',
+  lunchDurationOptions: {
+    '<30':   '⚡ < 30 min',
+    '30-45': '🕐 30–45 min',
+    '45-60': '🕑 45–60 min',
+    '>60':   '🕒 1h+',
+  },
+
+  // Delete session
+  deleteSession: 'Supprimer le déjeuner',
+  deleteConfirm: 'Supprimer définitivement ce déjeuner ? Tous les participants seront retirés.',
 
   // Cuisines
   cuisineTitle: 'Vos envies ?',
@@ -89,9 +96,8 @@ export default {
   waitingEmpty: 'C\'est calme… partage le code !',
   waitingParticipant: '{name} décide quand tout le monde est là',
   waitingYourPrefs: 'En attente du lancement…',
-  groupSummary: '{out} qui sortent · {takeout} à emporter · {homemade} gamelles',
+  groupSummary: '{out} qui sortent · {inplace} sur place',
   launchSearchOut: '🍽️ Trouver un restaurant',
-  launchSearchTakeout: '📦 Trouver à emporter',
   searching: 'Recherche en cours…',
   searchDone: 'Résultats disponibles !',
   viewResults: 'Voir les résultats',
