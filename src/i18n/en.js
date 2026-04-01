@@ -54,12 +54,16 @@ export default {
   // Meal modes
   mealOut: 'Going out',
   mealOutDesc: 'Restaurant with the group',
-  mealHomemade: 'Brought my lunch',
-  mealHomemadeDesc: 'Eating in, meal from home',
+  mealInPlace: 'Staying in',
+  mealInPlaceDesc: 'Packed lunch, desk or solo — no search needed',
   mealTakeout: 'Takeout',
   mealTakeoutDesc: 'Looking to order / get delivery',
-  homemadeMsg: 'Homemade — respect 👏',
-  homemadeSkipMsg: "No restaurant search for you — enjoy your lunch while we pick!",
+  inPlaceMsg: 'Enjoy your lunch! 🥡',
+  inPlaceSkipMsg: "No restaurant search for you — we'll keep you posted!",
+
+  // Time constraint
+  timeConstraintLabel: 'Time constraint',
+  timeConstraintDesc: 'I need to be back quickly (< 45 min)',
 
   // Cuisines
   cuisineTitle: 'What are you in the mood for?',

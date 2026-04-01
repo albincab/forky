@@ -54,12 +54,16 @@ export default {
   // Meal modes
   mealOut: 'Je sors manger',
   mealOutDesc: 'Repas au restaurant avec le groupe',
-  mealHomemade: "J'ai ma gamelle",
-  mealHomemadeDesc: 'Je mange sur place, repas apporté',
+  mealInPlace: 'Je reste sur place',
+  mealInPlaceDesc: 'Gamelle, bureau ou repas solo — pas besoin de chercher',
   mealTakeout: 'À emporter',
   mealTakeoutDesc: 'Je cherche à commander / faire livrer',
-  homemadeMsg: 'Repas maison — respect 👏',
-  homemadeSkipMsg: "Pas de recherche pour vous — bon appétit pendant qu'on choisit !",
+  inPlaceMsg: 'Super, bon appétit ! 🥡',
+  inPlaceSkipMsg: "Pas de recherche pour vous — on vous tient au courant !",
+
+  // Time constraint
+  timeConstraintLabel: 'Impératif de temps',
+  timeConstraintDesc: 'Je dois être de retour rapidement (< 45 min)',
 
   // Cuisines
   cuisineTitle: 'Vos envies ?',

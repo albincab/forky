@@ -29,15 +29,16 @@ function buildSession(row, participants = []) {
       takeout: row.result_takeout ?? null,
     },
     participants: participants.map(p => ({
-      id:            p.id,
-      name:          p.name,
-      isOrganizer:   p.is_organizer,
-      mealMode:      p.meal_mode   ?? null,
-      cuisines:      p.cuisines    ?? [],
-      budget:        p.budget      ?? null,
-      allergies:     p.allergies   ?? [],
-      prefsComplete: p.prefs_complete,
-      joinedAt:      new Date(p.joined_at).getTime(),
+      id:             p.id,
+      name:           p.name,
+      isOrganizer:    p.is_organizer,
+      mealMode:       p.meal_mode      ?? null,
+      cuisines:       p.cuisines       ?? [],
+      budget:         p.budget         ?? null,
+      allergies:      p.allergies      ?? [],
+      timeConstraint: p.time_constraint ?? false,
+      prefsComplete:  p.prefs_complete,
+      joinedAt:       new Date(p.joined_at).getTime(),
     })),
   }
 }
@@ -151,11 +152,12 @@ export async function updateParticipantPrefs({ code, participantId, prefs }) {
   const { error } = await supabase
     .from('participants')
     .update({
-      meal_mode:      prefs.mealMode   ?? null,
-      cuisines:       prefs.cuisines   ?? [],
-      budget:         prefs.budget     ?? null,
-      allergies:      prefs.allergies  ?? [],
-      prefs_complete: true,
+      meal_mode:       prefs.mealMode        ?? null,
+      cuisines:        prefs.cuisines        ?? [],
+      budget:          prefs.budget          ?? null,
+      allergies:       prefs.allergies       ?? [],
+      time_constraint: prefs.timeConstraint  ?? false,
+      prefs_complete:  true,
     })
     .eq('id', participantId)
     .eq('session_code', code)

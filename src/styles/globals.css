@@ -342,6 +342,81 @@ p  { color: var(--text-muted); font-size: 0.9rem; }
 .budget-option:hover    { border-color: var(--honey); }
 .budget-option.selected { border-color: var(--brown); background: var(--sand); }
 
+/* ─── Budget row (horizontal pills) ──────────────────────────────────────── */
+.budget-row {
+  display: flex;
+  gap: 8px;
+}
+.budget-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 6px;
+  border-radius: var(--r-chip);
+  border: 2px solid var(--sand);
+  background: var(--white);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--brown);
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+.budget-pill:hover    { border-color: var(--honey); }
+.budget-pill.selected { border-color: var(--brown); background: var(--brown); color: var(--white); }
+
+/* ─── Preferences screen helpers ─────────────────────────────────────────── */
+.pref-section--reveal {
+  animation: prefReveal 0.2s ease both;
+}
+@keyframes prefReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pref-no-allergy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--success);
+  background: rgba(39,174,96,0.08);
+  border: 1px solid rgba(39,174,96,0.25);
+  border-radius: var(--r-chip);
+  padding: 6px 12px;
+  width: fit-content;
+}
+
+/* Time constraint toggle */
+.time-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--r-card);
+  border: 2px solid var(--sand);
+  background: var(--white);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  text-align: left;
+}
+.time-toggle:hover { border-color: var(--honey); }
+.time-toggle.active { border-color: var(--brown); background: var(--sand); }
+.time-toggle-icon { font-size: 1.75rem; line-height: 1; flex-shrink: 0; }
+.time-toggle-text { flex: 1; }
+.time-toggle-title { font-weight: 600; color: var(--brown); font-size: 0.95rem; }
+.time-toggle-desc  { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+.time-toggle-check {
+  font-weight: 700;
+  color: var(--success);
+  font-size: 1.1rem;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.time-toggle.active .time-toggle-check { opacity: 1; }
+
 /* ─── Participant card ────────────────────────────────────────────────────── */
 .participant-card {
   display: flex;
