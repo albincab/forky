@@ -3,6 +3,7 @@ import {
   getSession,
   setSearching,
   setResults,
+  leaveSession,
   subscribeToSession,
   unsubscribeFromSession,
 } from '../services/sessionService.js'
@@ -82,7 +83,7 @@ function GroupSummary({ participants, t }) {
 
 // ─── Main WaitingRoomScreen ───────────────────────────────────────────────────
 export default function WaitingRoomScreen({
-  t, lang, sessionCode, userId, isOrganizer, onLeave, onResultsReady,
+  t, lang, sessionCode, userId, isOrganizer, onLeave, onEditPrefs, onResultsReady,
 }) {
   const [session,        setSession]        = useState(null)
   const [loadingOut,     setLoadingOut]     = useState(false)
@@ -163,7 +164,15 @@ export default function WaitingRoomScreen({
     <div className="screen">
       <div className="section-header">
         <h1>{t.waitingRoomTitle}</h1>
-        <button className="btn-ghost" onClick={onLeave}>✕</button>
+        <button
+          className="btn-ghost"
+          onClick={() => {
+            if (window.confirm(t.leaveConfirm)) onLeave()
+          }}
+          aria-label={t.leaveSession}
+        >
+          ✕
+        </button>
       </div>
 
       {/* Code + share (organizer only) */}
@@ -184,12 +193,30 @@ export default function WaitingRoomScreen({
         <p className="text-center text-muted">{t.waitingEmpty}</p>
       )}
 
-      {/* Waiting message for participants */}
+      {/* Waiting message + actions for participants */}
       {!isOrganizer && (
         <div className="waiting-banner">
           <p style={{ color: 'var(--brown)', fontWeight: 600 }}>
             {t.waitingParticipant.replace('{name}', organizerName)}
           </p>
+          {!session.searchedOut && !session.searchedTakeout && (
+            <div className="btn-icon-row" style={{ marginTop: 12, justifyContent: 'center' }}>
+              <button className="btn-icon" onClick={onEditPrefs}>
+                ✏️ {t.editPrefs}
+              </button>
+              <button
+                className="btn-icon"
+                style={{ color: 'var(--error)', borderColor: 'var(--error)' }}
+                onClick={async () => {
+                  if (!window.confirm(t.leaveConfirm)) return
+                  await leaveSession({ code: sessionCode, participantId: userId })
+                  onLeave()
+                }}
+              >
+                🚪 {t.leaveSession}
+              </button>
+            </div>
+          )}
         </div>
       )}
 

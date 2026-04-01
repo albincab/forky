@@ -204,6 +204,21 @@ export async function getPublicSessions() {
 }
 
 /**
+ * Removes a participant from a session.
+ * The organizer cannot leave (they must close the session instead).
+ */
+export async function leaveSession({ code, participantId }) {
+  const { error } = await supabase
+    .from('participants')
+    .delete()
+    .eq('id', participantId)
+    .eq('session_code', code)
+    .eq('is_organizer', false) // safety: organizer cannot be deleted this way
+
+  if (error) throw new Error(error.message)
+}
+
+/**
  * Returns the Supabase Realtime channel for a session.
  * Fires `onChange` whenever participants or the session row change.
  */

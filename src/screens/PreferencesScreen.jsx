@@ -160,7 +160,7 @@ function StepperProgress({ totalSteps, currentIdx }) {
 const ALL_STEPS = ['meal', 'cuisines', 'budget', 'allergies']
 
 // ─── Main PreferencesScreen ───────────────────────────────────────────────────
-export default function PreferencesScreen({ t, sessionCode, userId, onDone }) {
+export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDone }) {
   const [stepIdx,    setStepIdx]    = useState(0)
   const [mealMode,   setMealMode]   = useState(null)
   const [cuisines,   setCuisines]   = useState([])
@@ -211,24 +211,26 @@ export default function PreferencesScreen({ t, sessionCode, userId, onDone }) {
   }
 
   function handleBack() {
-    if (stepIdx === 0) return
     setError('')
+    if (stepIdx === 0) {
+      // Step 1 : quitter les préférences → retour accueil
+      onBack()
+      return
+    }
     setStepIdx(getPrevIdx(stepIdx))
   }
 
   return (
     <div className="screen">
       <div className="stepper-header" style={{ gap: 12 }}>
-        {stepIdx > 0 && (
-          <button
-            className="stepper-back"
-            onClick={handleBack}
-            aria-label={t.back}
-            type="button"
-          >
-            ←
-          </button>
-        )}
+        <button
+          className="stepper-back"
+          onClick={handleBack}
+          aria-label={t.back}
+          type="button"
+        >
+          ←
+        </button>
         <StepperProgress totalSteps={ALL_STEPS.length} currentIdx={stepIdx} />
       </div>
 

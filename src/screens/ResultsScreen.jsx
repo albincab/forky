@@ -41,7 +41,7 @@ function ResultSection({ title, restaurants, t }) {
   )
 }
 
-export default function ResultsScreen({ t, sessionCode, onLeave }) {
+export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting }) {
   const [session, setSession] = useState(null)
 
   useEffect(() => {
@@ -92,8 +92,11 @@ export default function ResultsScreen({ t, sessionCode, onLeave }) {
 
       <ResultSection title={t.sectionTakeout} restaurants={results?.takeout} t={t} />
 
-      <div className="mt-auto">
-        <button className="btn btn-secondary" onClick={onLeave}>
+      <div className="mt-auto flex-col">
+        <button className="btn btn-secondary" onClick={onBackToWaiting}>
+          ← {t.backToWaiting || 'Retour à la salle d\'attente'}
+        </button>
+        <button className="btn btn-ghost" onClick={onLeave}>
           🏠 {t.newSession}
         </button>
       </div>

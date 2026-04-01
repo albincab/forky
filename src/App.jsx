@@ -12,7 +12,7 @@ export default function App() {
   const [lang] = useState(() => detectLang())
   const t = getTranslations(lang)
 
-  // 'loading' while we check sessionStorage + Supabase on first mount
+  // 'loading' while we check localStorage + Supabase on first mount
   const [screen, setScreen] = useState('loading')
 
   const [sessionCode,   setSessionCode]   = useState(null)
@@ -20,15 +20,16 @@ export default function App() {
   const [isOrganizer,   setIsOrganizer]   = useState(false)
   const [prefilledCode, setPrefilledCode] = useState(null)
 
-  // ─── Init: resolve screen from sessionStorage + Supabase ───────────────────
+  // ─── Init: resolve screen from localStorage + Supabase ─────────────────────
+  // localStorage (not sessionStorage) → persists after closing the browser tab
   useEffect(() => {
     async function init() {
       // Check for ?code= URL param first
       const params  = new URLSearchParams(window.location.search)
       const urlCode = params.get('code')
 
-      const storedCode = sessionStorage.getItem('atable_code')
-      const storedUid  = sessionStorage.getItem('atable_uid')
+      const storedCode = localStorage.getItem('atable_code')
+      const storedUid  = localStorage.getItem('atable_uid')
 
       // If URL has a code and no active session → go to Join
       if (urlCode && !storedCode) {
@@ -61,7 +62,7 @@ export default function App() {
       // Restore identity state
       setSessionCode(storedCode)
       setUserId(storedUid)
-      setIsOrganizer(sessionStorage.getItem('atable_organizer') === 'true')
+      setIsOrganizer(localStorage.getItem('atable_organizer') === 'true')
 
       if (!participant.prefsComplete) { setScreen('preferences'); return }
 
@@ -75,18 +76,18 @@ export default function App() {
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
   function persistIdentity({ code, uid, organizer }) {
-    sessionStorage.setItem('atable_code',      code)
-    sessionStorage.setItem('atable_uid',       uid)
-    sessionStorage.setItem('atable_organizer', String(organizer))
+    localStorage.setItem('atable_code',      code)
+    localStorage.setItem('atable_uid',       uid)
+    localStorage.setItem('atable_organizer', String(organizer))
     setSessionCode(code)
     setUserId(uid)
     setIsOrganizer(organizer)
   }
 
   function clearIdentity() {
-    sessionStorage.removeItem('atable_code')
-    sessionStorage.removeItem('atable_uid')
-    sessionStorage.removeItem('atable_organizer')
+    localStorage.removeItem('atable_code')
+    localStorage.removeItem('atable_uid')
+    localStorage.removeItem('atable_organizer')
     setSessionCode(null)
     setUserId(null)
     setIsOrganizer(false)
@@ -153,6 +154,7 @@ export default function App() {
           t={t}
           sessionCode={sessionCode}
           userId={userId}
+          onBack={handleLeave}
           onDone={() => setScreen('waiting')}
         />
       )}
@@ -165,12 +167,18 @@ export default function App() {
           userId={userId}
           isOrganizer={isOrganizer}
           onLeave={handleLeave}
+          onEditPrefs={() => setScreen('preferences')}
           onResultsReady={() => setScreen('results')}
         />
       )}
 
       {screen === 'results' && (
-        <ResultsScreen t={t} sessionCode={sessionCode} onLeave={handleLeave} />
+        <ResultsScreen
+          t={t}
+          sessionCode={sessionCode}
+          onLeave={handleLeave}
+          onBackToWaiting={() => setScreen('waiting')}
+        />
       )}
     </div>
   )
