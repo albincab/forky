@@ -2,25 +2,31 @@ import { useState } from 'react'
 import { createSession } from '../services/sessionService.js'
 
 export default function CreateScreen({ t, onBack, onCreated }) {
-  const [name, setName]   = useState('')
-  const [type, setType]   = useState('private')
-  const [error, setError] = useState('')
+  const [name,    setName]    = useState('')
+  const [type,    setType]    = useState('private')
+  const [error,   setError]   = useState('')
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) { setError(t.nameRequired); return }
 
-    const { session, organizerId } = createSession({
-      organizerName: name.trim(),
-      type,
-    })
-
-    onCreated({ code: session.code, organizerId })
+    setLoading(true)
+    try {
+      const { session, organizerId } = await createSession({
+        organizerName: name.trim(),
+        type,
+      })
+      onCreated({ code: session.code, organizerId })
+    } catch {
+      setError(t.claudeError)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="screen">
-      {/* Header */}
       <div className="flex-row">
         <button className="btn-ghost" onClick={onBack} aria-label={t.back}>
           ← {t.back}
@@ -30,11 +36,8 @@ export default function CreateScreen({ t, onBack, onCreated }) {
       <h1>{t.createTitle}</h1>
 
       <form onSubmit={handleSubmit} className="flex-col" style={{ gap: 20 }}>
-        {/* Name input */}
         <div className="input-group">
-          <label htmlFor="org-name" className="input-label">
-            {t.yourName}
-          </label>
+          <label htmlFor="org-name" className="input-label">{t.yourName}</label>
           <input
             id="org-name"
             className="input"
@@ -44,11 +47,11 @@ export default function CreateScreen({ t, onBack, onCreated }) {
             onChange={e => { setName(e.target.value); setError('') }}
             maxLength={30}
             autoFocus
+            disabled={loading}
           />
           {error && <span className="error-msg" role="alert">⚠ {error}</span>}
         </div>
 
-        {/* Session type */}
         <div className="flex-col" style={{ gap: 8 }}>
           <span className="input-label">{t.sessionType}</span>
 
@@ -82,8 +85,11 @@ export default function CreateScreen({ t, onBack, onCreated }) {
         </div>
 
         <div className="mt-auto">
-          <button type="submit" className="btn btn-primary">
-            {t.createBtn}
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading
+              ? <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Création…</>
+              : t.createBtn
+            }
           </button>
         </div>
       </form>

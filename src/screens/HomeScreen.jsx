@@ -5,24 +5,26 @@ import PublicSessionsList from '../components/PublicSessionsList.jsx'
 export default function HomeScreen({ t, onCreate, onJoin }) {
   const [publicSessions, setPublicSessions] = useState([])
 
-  // Poll public sessions every 3 seconds
+  async function refresh() {
+    const sessions = await getPublicSessions()
+    setPublicSessions(sessions)
+  }
+
+  // Poll every 5 seconds for new public sessions
   useEffect(() => {
-    function refresh() { setPublicSessions(getPublicSessions()) }
     refresh()
-    const id = setInterval(refresh, 3000)
+    const id = setInterval(refresh, 5000)
     return () => clearInterval(id)
   }, [])
 
   return (
     <div className="screen">
-      {/* Hero */}
       <div className="home-hero">
         <div className="home-logo">🍽️</div>
         <h1 className="home-app-name">À TABLE!</h1>
         <p className="home-tagline">{t.tagline}</p>
       </div>
 
-      {/* Main CTAs */}
       <div className="flex-col">
         <button className="btn btn-primary" onClick={onCreate}>
           🚀 {t.ctaCreate}
@@ -32,7 +34,6 @@ export default function HomeScreen({ t, onCreate, onJoin }) {
         </button>
       </div>
 
-      {/* Public sessions */}
       {publicSessions.length > 0 && (
         <>
           <div className="divider">{t.publicSessionsTitle}</div>

@@ -1,40 +1,7 @@
-// Session storage service — all reads/writes to localStorage go through here
+// Session service — Supabase backend (multi-device real-time sync)
+import { supabase } from './supabaseClient.js'
 
-const SESSIONS_KEY = 'atable_sessions'
-const PUBLIC_INDEX_KEY = 'atable_public_index'
-
-// ─── Internal helpers ───────────────────────────────────────────────────────
-
-function readSessions() {
-  try {
-    return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
-
-function writeSessions(sessions) {
-  // Passively remove sessions older than 24 hours to keep storage clean
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000
-  const cleaned = Object.fromEntries(
-    Object.entries(sessions).filter(([, s]) => s.createdAt > cutoff)
-  )
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(cleaned))
-}
-
-function readPublicIndex() {
-  try {
-    return JSON.parse(localStorage.getItem(PUBLIC_INDEX_KEY) || '[]')
-  } catch {
-    return []
-  }
-}
-
-function writePublicIndex(list) {
-  localStorage.setItem(PUBLIC_INDEX_KEY, JSON.stringify(list))
-}
-
-// ─── Code generation ─────────────────────────────────────────────────────────
+// ─── Code generation ──────────────────────────────────────────────────────────
 
 /** Generates a 4-character session code (no ambiguous chars: 0, O, I, 1, l) */
 export function generateCode() {
@@ -42,186 +9,223 @@ export function generateCode() {
   return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
-// ─── Session CRUD ────────────────────────────────────────────────────────────
+// ─── Data mapping ─────────────────────────────────────────────────────────────
+
+/** Maps a Supabase row + participants array → app session object */
+function buildSession(row, participants = []) {
+  return {
+    code:             row.code,
+    type:             row.type,
+    organizerName:    row.organizer_name,
+    organizerId:      row.organizer_id,
+    createdAt:        new Date(row.created_at).getTime(),
+    status:           row.status,
+    searchingOut:     row.searching_out,
+    searchingTakeout: row.searching_takeout,
+    searchedOut:      row.searched_out,
+    searchedTakeout:  row.searched_takeout,
+    results: {
+      out:    row.result_out    ?? null,
+      takeout: row.result_takeout ?? null,
+    },
+    participants: participants.map(p => ({
+      id:            p.id,
+      name:          p.name,
+      isOrganizer:   p.is_organizer,
+      mealMode:      p.meal_mode   ?? null,
+      cuisines:      p.cuisines    ?? [],
+      budget:        p.budget      ?? null,
+      allergies:     p.allergies   ?? [],
+      prefsComplete: p.prefs_complete,
+      joinedAt:      new Date(p.joined_at).getTime(),
+    })),
+  }
+}
+
+/** Fetches participants for a session (ordered by join time) */
+async function fetchParticipants(code) {
+  const { data } = await supabase
+    .from('participants')
+    .select('*')
+    .eq('session_code', code)
+    .order('joined_at', { ascending: true })
+  return data ?? []
+}
+
+// ─── Session CRUD ─────────────────────────────────────────────────────────────
 
 /**
- * Creates a new session.
- * @param {{ organizerName: string, type: 'public'|'private' }}
+ * Creates a new session with a unique 4-char code.
  * @returns {{ session, organizerId }}
  */
-export function createSession({ organizerName, type }) {
-  const sessions = readSessions()
-
-  // Ensure code uniqueness
-  let code = generateCode()
-  while (sessions[code]) code = generateCode()
+export async function createSession({ organizerName, type }) {
+  // Find a unique code
+  let code
+  let isUnique = false
+  while (!isUnique) {
+    code = generateCode()
+    const { data } = await supabase
+      .from('sessions')
+      .select('code')
+      .eq('code', code)
+      .maybeSingle()
+    isUnique = !data
+  }
 
   const organizerId = crypto.randomUUID()
 
-  const session = {
+  const { error: sErr } = await supabase.from('sessions').insert({
     code,
     type,
-    organizerName,
-    organizerId,
-    createdAt: Date.now(),
-    status: 'waiting', // 'waiting' | 'done'
-    searchingOut: false,
-    searchingTakeout: false,
-    searchedOut: false,
-    searchedTakeout: false,
-    participants: [
-      {
-        id: organizerId,
-        name: organizerName,
-        isOrganizer: true,
-        mealMode: null, // 'out' | 'homemade' | 'takeout'
-        cuisines: [],
-        budget: null,
-        allergies: [],
-        prefsComplete: false,
-        joinedAt: Date.now(),
-      },
-    ],
-    results: { out: null, takeout: null },
-  }
+    organizer_name: organizerName,
+    organizer_id:   organizerId,
+  })
+  if (sErr) throw new Error(sErr.message)
 
-  sessions[code] = session
-  writeSessions(sessions)
+  const { error: pErr } = await supabase.from('participants').insert({
+    id:           organizerId,
+    session_code: code,
+    name:         organizerName,
+    is_organizer: true,
+  })
+  if (pErr) throw new Error(pErr.message)
 
-  // Register in public index if public
-  if (type === 'public') {
-    const index = readPublicIndex()
-    if (!index.includes(code)) {
-      index.push(code)
-      writePublicIndex(index)
-    }
-  }
-
+  const session = await getSession(code)
   return { session, organizerId }
 }
 
 /**
  * Retrieves a session by code (case-insensitive).
- * @param {string} code
  * @returns {object|null}
  */
-export function getSession(code) {
+export async function getSession(code) {
   if (!code) return null
-  const sessions = readSessions()
-  return sessions[code.toUpperCase()] || null
+  const upper = code.toUpperCase()
+
+  const { data: row, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('code', upper)
+    .maybeSingle()
+
+  if (error || !row) return null
+
+  const participants = await fetchParticipants(upper)
+  return buildSession(row, participants)
 }
 
 /**
- * Persists a full session object (used after in-place mutations).
- * @param {object} session
- */
-export function saveSession(session) {
-  const sessions = readSessions()
-  sessions[session.code] = session
-  writeSessions(sessions)
-}
-
-/**
- * Adds a participant to an existing session.
- * @param {{ code: string, participantName: string }}
+ * Adds a participant to a session.
  * @returns {{ session, participantId } | { error: string }}
  */
-export function joinSession({ code, participantName }) {
-  const upperCode = code.toUpperCase()
-  const sessions = readSessions()
-  const session = sessions[upperCode]
+export async function joinSession({ code, participantName }) {
+  const upper = code.toUpperCase()
 
-  if (!session) return { error: 'SESSION_NOT_FOUND' }
-  if (session.status !== 'waiting') return { error: 'SESSION_CLOSED' }
+  const { data: row } = await supabase
+    .from('sessions')
+    .select('status')
+    .eq('code', upper)
+    .maybeSingle()
+
+  if (!row)               return { error: 'SESSION_NOT_FOUND' }
+  if (row.status !== 'waiting') return { error: 'SESSION_CLOSED' }
 
   const participantId = crypto.randomUUID()
-  session.participants.push({
-    id: participantId,
-    name: participantName,
-    isOrganizer: false,
-    mealMode: null,
-    cuisines: [],
-    budget: null,
-    allergies: [],
-    prefsComplete: false,
-    joinedAt: Date.now(),
+
+  const { error } = await supabase.from('participants').insert({
+    id:           participantId,
+    session_code: upper,
+    name:         participantName,
+    is_organizer: false,
   })
+  if (error) return { error: error.message }
 
-  sessions[upperCode] = session
-  writeSessions(sessions)
-
+  const session = await getSession(upper)
   return { session, participantId }
 }
 
 /**
- * Updates a participant's preferences and marks them as complete.
- * @param {{ code: string, participantId: string, prefs: object }}
- * @returns {object|null} Updated session
+ * Updates a participant's preferences and marks them complete.
  */
-export function updateParticipantPrefs({ code, participantId, prefs }) {
-  const sessions = readSessions()
-  const session = sessions[code]
-  if (!session) return null
+export async function updateParticipantPrefs({ code, participantId, prefs }) {
+  const { error } = await supabase
+    .from('participants')
+    .update({
+      meal_mode:      prefs.mealMode   ?? null,
+      cuisines:       prefs.cuisines   ?? [],
+      budget:         prefs.budget     ?? null,
+      allergies:      prefs.allergies  ?? [],
+      prefs_complete: true,
+    })
+    .eq('id', participantId)
+    .eq('session_code', code)
 
-  const idx = session.participants.findIndex(p => p.id === participantId)
-  if (idx === -1) return null
-
-  session.participants[idx] = {
-    ...session.participants[idx],
-    ...prefs,
-    prefsComplete: true,
-  }
-
-  sessions[code] = session
-  writeSessions(sessions)
-  return session
+  if (error) throw new Error(error.message)
 }
 
 /**
- * Sets the searching flag for a given mode.
- * @param {{ code: string, mode: 'out'|'takeout', value: boolean }}
+ * Sets the searching flag for a given mode on the session.
  */
-export function setSearching({ code, mode, value }) {
-  const sessions = readSessions()
-  const session = sessions[code]
-  if (!session) return
-
-  if (mode === 'out') session.searchingOut = value
-  if (mode === 'takeout') session.searchingTakeout = value
-
-  sessions[code] = session
-  writeSessions(sessions)
+export async function setSearching({ code, mode, value }) {
+  const col = mode === 'out' ? 'searching_out' : 'searching_takeout'
+  await supabase.from('sessions').update({ [col]: value }).eq('code', code)
 }
 
 /**
- * Stores AI recommendation results for a given mode.
- * @param {{ code: string, mode: 'out'|'takeout', results: Array }}
- * @returns {object|null} Updated session
+ * Stores AI recommendation results and clears the searching flag.
  */
-export function setResults({ code, mode, results }) {
-  const sessions = readSessions()
-  const session = sessions[code]
-  if (!session) return null
+export async function setResults({ code, mode, results }) {
+  const updates = mode === 'out'
+    ? { result_out: results,    searching_out:    false, searched_out:    true }
+    : { result_takeout: results, searching_takeout: false, searched_takeout: true }
 
-  session.results[mode] = results
-  if (mode === 'out') { session.searchingOut = false; session.searchedOut = true }
-  if (mode === 'takeout') { session.searchingTakeout = false; session.searchedTakeout = true }
-
-  sessions[code] = session
-  writeSessions(sessions)
-  return session
+  const { error } = await supabase.from('sessions').update(updates).eq('code', code)
+  if (error) throw new Error(error.message)
 }
 
 /**
  * Returns all public sessions created today.
- * @returns {Array}
  */
-export function getPublicSessions() {
-  const index = readPublicIndex()
-  const sessions = readSessions()
-  const todayStr = new Date().toDateString()
+export async function getPublicSessions() {
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
 
-  return index
-    .map(code => sessions[code])
-    .filter(s => s && s.status === 'waiting' && new Date(s.createdAt).toDateString() === todayStr)
+  const { data: rows } = await supabase
+    .from('sessions')
+    .select('*, participants(*)')
+    .eq('type', 'public')
+    .eq('status', 'waiting')
+    .gte('created_at', todayStart.toISOString())
+    .order('created_at', { ascending: false })
+
+  if (!rows) return []
+
+  return rows.map(row => buildSession(row, row.participants ?? []))
+}
+
+/**
+ * Returns the Supabase Realtime channel for a session.
+ * Fires `onChange` whenever participants or the session row change.
+ */
+export function subscribeToSession(code, onChange) {
+  const channel = supabase
+    .channel(`session-${code}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'participants', filter: `session_code=eq.${code}` },
+      onChange
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'sessions', filter: `code=eq.${code}` },
+      onChange
+    )
+    .subscribe()
+
+  return channel
+}
+
+/** Removes a Realtime channel subscription */
+export function unsubscribeFromSession(channel) {
+  if (channel) supabase.removeChannel(channel)
 }

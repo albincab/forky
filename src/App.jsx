@@ -8,150 +8,156 @@ import PreferencesScreen from './screens/PreferencesScreen.jsx'
 import WaitingRoomScreen from './screens/WaitingRoomScreen.jsx'
 import ResultsScreen from './screens/ResultsScreen.jsx'
 
-const SCREENS = {
-  HOME: 'home',
-  CREATE: 'create',
-  JOIN: 'join',
-  PREFERENCES: 'preferences',
-  WAITING: 'waiting',
-  RESULTS: 'results',
-}
-
-/** Resolves the initial screen based on sessionStorage and session state */
-function resolveInitialScreen() {
-  const code = sessionStorage.getItem('atable_code')
-  const uid  = sessionStorage.getItem('atable_uid')
-  if (!code || !uid) return SCREENS.HOME
-
-  const session = getSession(code)
-  if (!session) {
-    // Session expired or was never created — clear stored identity
-    sessionStorage.removeItem('atable_code')
-    sessionStorage.removeItem('atable_uid')
-    sessionStorage.removeItem('atable_organizer')
-    return SCREENS.HOME
-  }
-
-  const participant = session.participants.find(p => p.id === uid)
-  if (!participant) return SCREENS.HOME
-  if (!participant.prefsComplete) return SCREENS.PREFERENCES
-
-  const hasResults = session.results?.out?.length > 0 || session.results?.takeout?.length > 0
-  return hasResults ? SCREENS.RESULTS : SCREENS.WAITING
-}
-
 export default function App() {
-  const [lang]  = useState(() => detectLang())
+  const [lang] = useState(() => detectLang())
   const t = getTranslations(lang)
 
-  const [screen, setScreen] = useState(resolveInitialScreen)
+  // 'loading' while we check sessionStorage + Supabase on first mount
+  const [screen, setScreen] = useState('loading')
 
-  // Current user identity (persisted in sessionStorage)
-  const [sessionCode,  setSessionCode]  = useState(() => sessionStorage.getItem('atable_code')      || null)
-  const [userId,       setUserId]       = useState(() => sessionStorage.getItem('atable_uid')       || null)
-  const [isOrganizer,  setIsOrganizer]  = useState(() => sessionStorage.getItem('atable_organizer') === 'true')
+  const [sessionCode,   setSessionCode]   = useState(null)
+  const [userId,        setUserId]        = useState(null)
+  const [isOrganizer,   setIsOrganizer]   = useState(false)
+  const [prefilledCode, setPrefilledCode] = useState(null)
 
-  // Code pre-filled via URL ?code= param or public session click
-  const [prefilledCode, setPrefilledCode] = useState(() => {
-    const params = new URLSearchParams(window.location.search)
-    return params.get('code') || null
-  })
-
-  // If ?code= is in URL and no active session, navigate to Join
+  // ─── Init: resolve screen from sessionStorage + Supabase ───────────────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const urlCode = params.get('code')
-    if (urlCode && !sessionStorage.getItem('atable_code')) {
-      setPrefilledCode(urlCode)
-      setScreen(SCREENS.JOIN)
-    }
-  }, [])
+    async function init() {
+      // Check for ?code= URL param first
+      const params  = new URLSearchParams(window.location.search)
+      const urlCode = params.get('code')
 
-  // ─── Handlers ──────────────────────────────────────────────────────────────
+      const storedCode = sessionStorage.getItem('atable_code')
+      const storedUid  = sessionStorage.getItem('atable_uid')
+
+      // If URL has a code and no active session → go to Join
+      if (urlCode && !storedCode) {
+        setPrefilledCode(urlCode)
+        setScreen('join')
+        return
+      }
+
+      // No stored session → home
+      if (!storedCode || !storedUid) {
+        setScreen('home')
+        return
+      }
+
+      // Check if the stored session still exists in Supabase
+      const session = await getSession(storedCode)
+      if (!session) {
+        clearIdentity()
+        setScreen('home')
+        return
+      }
+
+      const participant = session.participants.find(p => p.id === storedUid)
+      if (!participant) {
+        clearIdentity()
+        setScreen('home')
+        return
+      }
+
+      // Restore identity state
+      setSessionCode(storedCode)
+      setUserId(storedUid)
+      setIsOrganizer(sessionStorage.getItem('atable_organizer') === 'true')
+
+      if (!participant.prefsComplete) { setScreen('preferences'); return }
+
+      const hasResults = session.results?.out?.length > 0 || session.results?.takeout?.length > 0
+      setScreen(hasResults ? 'results' : 'waiting')
+    }
+
+    init()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
 
   function persistIdentity({ code, uid, organizer }) {
-    sessionStorage.setItem('atable_code', code)
-    sessionStorage.setItem('atable_uid', uid)
+    sessionStorage.setItem('atable_code',      code)
+    sessionStorage.setItem('atable_uid',       uid)
     sessionStorage.setItem('atable_organizer', String(organizer))
     setSessionCode(code)
     setUserId(uid)
     setIsOrganizer(organizer)
   }
 
-  function handleCreated({ code, organizerId }) {
-    persistIdentity({ code, uid: organizerId, organizer: true })
-    setScreen(SCREENS.PREFERENCES)
-  }
-
-  function handleJoined({ code, participantId }) {
-    persistIdentity({ code, uid: participantId, organizer: false })
-    setScreen(SCREENS.PREFERENCES)
-  }
-
-  function handlePreferencesDone() {
-    setScreen(SCREENS.WAITING)
-  }
-
-  function handleResultsReady() {
-    setScreen(SCREENS.RESULTS)
-  }
-
-  function handleLeave() {
+  function clearIdentity() {
     sessionStorage.removeItem('atable_code')
     sessionStorage.removeItem('atable_uid')
     sessionStorage.removeItem('atable_organizer')
     setSessionCode(null)
     setUserId(null)
     setIsOrganizer(false)
-    // Clear URL params
+  }
+
+  // ─── Navigation handlers ─────────────────────────────────────────────────────
+
+  function handleCreated({ code, organizerId }) {
+    persistIdentity({ code, uid: organizerId, organizer: true })
+    setScreen('preferences')
+  }
+
+  function handleJoined({ code, participantId }) {
+    persistIdentity({ code, uid: participantId, organizer: false })
+    setScreen('preferences')
+  }
+
+  function handleLeave() {
+    clearIdentity()
     window.history.replaceState({}, '', window.location.pathname)
-    setScreen(SCREENS.HOME)
+    setScreen('home')
   }
 
   function goJoin(code) {
     if (code) setPrefilledCode(code)
-    setScreen(SCREENS.JOIN)
+    setScreen('join')
   }
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  // ─── Render ──────────────────────────────────────────────────────────────────
+
+  if (screen === 'loading') {
+    return (
+      <div className="app">
+        <div className="screen" style={{ alignItems: 'center', justifyContent: 'center' }}>
+          <div className="spinner-wrap">
+            <div className="spinner" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app">
-      {screen === SCREENS.HOME && (
-        <HomeScreen
-          t={t}
-          onCreate={() => setScreen(SCREENS.CREATE)}
-          onJoin={goJoin}
-        />
+      {screen === 'home' && (
+        <HomeScreen t={t} onCreate={() => setScreen('create')} onJoin={goJoin} />
       )}
 
-      {screen === SCREENS.CREATE && (
-        <CreateScreen
-          t={t}
-          onBack={() => setScreen(SCREENS.HOME)}
-          onCreated={handleCreated}
-        />
+      {screen === 'create' && (
+        <CreateScreen t={t} onBack={() => setScreen('home')} onCreated={handleCreated} />
       )}
 
-      {screen === SCREENS.JOIN && (
+      {screen === 'join' && (
         <JoinScreen
           t={t}
           initialCode={prefilledCode}
-          onBack={() => setScreen(SCREENS.HOME)}
+          onBack={() => setScreen('home')}
           onJoined={handleJoined}
         />
       )}
 
-      {screen === SCREENS.PREFERENCES && (
+      {screen === 'preferences' && (
         <PreferencesScreen
           t={t}
           sessionCode={sessionCode}
           userId={userId}
-          onDone={handlePreferencesDone}
+          onDone={() => setScreen('waiting')}
         />
       )}
 
-      {screen === SCREENS.WAITING && (
+      {screen === 'waiting' && (
         <WaitingRoomScreen
           t={t}
           lang={lang}
@@ -159,16 +165,12 @@ export default function App() {
           userId={userId}
           isOrganizer={isOrganizer}
           onLeave={handleLeave}
-          onResultsReady={handleResultsReady}
+          onResultsReady={() => setScreen('results')}
         />
       )}
 
-      {screen === SCREENS.RESULTS && (
-        <ResultsScreen
-          t={t}
-          sessionCode={sessionCode}
-          onLeave={handleLeave}
-        />
+      {screen === 'results' && (
+        <ResultsScreen t={t} sessionCode={sessionCode} onLeave={handleLeave} />
       )}
     </div>
   )

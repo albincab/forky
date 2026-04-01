@@ -11,9 +11,7 @@ function StepMealMode({ t, value, onChange }) {
 
   return (
     <div className="flex-col" style={{ gap: 12 }}>
-      <div>
-        <h2>{t.step1Label}</h2>
-      </div>
+      <h2>{t.step1Label}</h2>
       {options.map(o => (
         <button
           key={o.key}
@@ -38,7 +36,7 @@ function StepMealMode({ t, value, onChange }) {
 function StepCuisines({ t, value, onChange, mealMode }) {
   if (mealMode === 'homemade') {
     return (
-      <div className="waiting-banner" style={{ marginTop: 8 }}>
+      <div className="waiting-banner">
         <div style={{ fontSize: '2rem', marginBottom: 8 }}>🥡</div>
         <h2>{t.mealHomemade}</h2>
         <p style={{ marginTop: 8 }}>{t.homemadeSkipMsg}</p>
@@ -78,15 +76,13 @@ function StepCuisines({ t, value, onChange, mealMode }) {
 function StepBudget({ t, value, onChange, mealMode }) {
   if (mealMode === 'homemade') {
     return (
-      <div className="waiting-banner" style={{ marginTop: 8 }}>
+      <div className="waiting-banner">
         <div style={{ fontSize: '2rem', marginBottom: 8 }}>🥡</div>
         <h2>{t.mealHomemade}</h2>
         <p style={{ marginTop: 8 }}>{t.homemadeSkipMsg}</p>
       </div>
     )
   }
-
-  const budgets = Object.entries(t.budgetOptions)
 
   return (
     <div className="flex-col">
@@ -95,7 +91,7 @@ function StepBudget({ t, value, onChange, mealMode }) {
         <p style={{ marginTop: 4 }}>{t.budgetSubtitle}</p>
       </div>
       <div className="budget-grid" role="group" aria-label={t.budgetTitle}>
-        {budgets.map(([key, label]) => (
+        {Object.entries(t.budgetOptions).map(([key, label]) => (
           <button
             key={key}
             type="button"
@@ -142,10 +138,16 @@ function StepAllergies({ t, value, onChange }) {
 }
 
 // ─── Stepper progress bar ─────────────────────────────────────────────────────
-function StepperProgress({ steps, currentIdx }) {
+function StepperProgress({ totalSteps, currentIdx }) {
   return (
-    <div className="stepper-bars" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={currentIdx + 1}>
-      {steps.map((_, i) => (
+    <div
+      className="stepper-bars"
+      role="progressbar"
+      aria-valuemin={1}
+      aria-valuemax={totalSteps}
+      aria-valuenow={currentIdx + 1}
+    >
+      {Array.from({ length: totalSteps }).map((_, i) => (
         <div
           key={i}
           className={`stepper-bar ${i < currentIdx ? 'done' : i === currentIdx ? 'active' : ''}`}
@@ -155,49 +157,54 @@ function StepperProgress({ steps, currentIdx }) {
   )
 }
 
+const ALL_STEPS = ['meal', 'cuisines', 'budget', 'allergies']
+
 // ─── Main PreferencesScreen ───────────────────────────────────────────────────
 export default function PreferencesScreen({ t, sessionCode, userId, onDone }) {
-  const [stepIdx, setStepIdx]     = useState(0)
-  const [mealMode, setMealMode]   = useState(null)
-  const [cuisines, setCuisines]   = useState([])
-  const [budget, setBudget]       = useState(null)
-  const [allergies, setAllergies] = useState([])
-  const [error, setError]         = useState('')
-  const [saving, setSaving]       = useState(false)
+  const [stepIdx,    setStepIdx]    = useState(0)
+  const [mealMode,   setMealMode]   = useState(null)
+  const [cuisines,   setCuisines]   = useState([])
+  const [budget,     setBudget]     = useState(null)
+  const [allergies,  setAllergies]  = useState([])
+  const [error,      setError]      = useState('')
+  const [saving,     setSaving]     = useState(false)
 
-  // Dynamic steps: skip cuisine & budget for "homemade"
-  // Each step: { key, label }
-  const ALL_STEPS = [
-    { key: 'meal',     label: t.step1Label },
-    { key: 'cuisines', label: t.step2Label },
-    { key: 'budget',   label: t.step3Label },
-    { key: 'allergies',label: t.step4Label },
-  ]
+  const isHomemade  = mealMode === 'homemade'
+  const isLastStep  = stepIdx === ALL_STEPS.length - 1
 
-  // For homemade, steps 2 and 3 are still shown but with a skip message
-  // Navigation: homemade skips directly from step 1 → step 4
-  const isHomemade = mealMode === 'homemade'
-
+  // Homemade skips cuisines (1) and budget (2) directly
   function getNextIdx(current) {
-    if (isHomemade && current === 0) return 3 // Jump to allergies
+    if (isHomemade && current === 0) return 3
     return current + 1
   }
-
   function getPrevIdx(current) {
-    if (isHomemade && current === 3) return 0 // Jump back to meal mode
+    if (isHomemade && current === 3) return 0
     return current - 1
   }
 
-  const isLastStep = stepIdx === ALL_STEPS.length - 1
-
-  function handleNext() {
-    if (stepIdx === 0 && !mealMode) {
-      setError(t.mealModeRequired)
-      return
-    }
+  async function handleNext() {
+    if (stepIdx === 0 && !mealMode) { setError(t.mealModeRequired); return }
     setError('')
+
     if (isLastStep) {
-      handleSubmit()
+      setSaving(true)
+      try {
+        await updateParticipantPrefs({
+          code: sessionCode,
+          participantId: userId,
+          prefs: {
+            mealMode,
+            cuisines:  isHomemade ? [] : cuisines,
+            budget:    isHomemade ? null : budget,
+            allergies,
+          },
+        })
+        onDone()
+      } catch {
+        setError(t.claudeError)
+      } finally {
+        setSaving(false)
+      }
     } else {
       setStepIdx(getNextIdx(stepIdx))
     }
@@ -209,26 +216,8 @@ export default function PreferencesScreen({ t, sessionCode, userId, onDone }) {
     setStepIdx(getPrevIdx(stepIdx))
   }
 
-  async function handleSubmit() {
-    setSaving(true)
-    const prefs = {
-      mealMode,
-      cuisines:  mealMode === 'homemade' ? [] : cuisines,
-      budget:    mealMode === 'homemade' ? null : budget,
-      allergies,
-    }
-    updateParticipantPrefs({ code: sessionCode, participantId: userId, prefs })
-    setSaving(false)
-    onDone()
-  }
-
-  // Visual step dots always show all 4 (greyed for skipped in homemade)
-  // Active index: map logical stepIdx to visual
-  const visualActiveIdx = stepIdx
-
   return (
     <div className="screen">
-      {/* Stepper header */}
       <div className="stepper-header" style={{ gap: 12 }}>
         {stepIdx > 0 && (
           <button
@@ -240,14 +229,14 @@ export default function PreferencesScreen({ t, sessionCode, userId, onDone }) {
             ←
           </button>
         )}
-        <StepperProgress steps={ALL_STEPS} currentIdx={visualActiveIdx} />
+        <StepperProgress totalSteps={ALL_STEPS.length} currentIdx={stepIdx} />
       </div>
 
       <p className="stepper-label">
-        {ALL_STEPS[stepIdx].label} ({stepIdx + 1} / {ALL_STEPS.length})
+        {[t.step1Label, t.step2Label, t.step3Label, t.step4Label][stepIdx]}
+        {' '}({stepIdx + 1} / {ALL_STEPS.length})
       </p>
 
-      {/* Step content */}
       {stepIdx === 0 && (
         <StepMealMode t={t} value={mealMode} onChange={v => { setMealMode(v); setError('') }} />
       )}
@@ -263,14 +252,12 @@ export default function PreferencesScreen({ t, sessionCode, userId, onDone }) {
 
       {error && <span className="error-msg" role="alert">⚠ {error}</span>}
 
-      {/* Navigation */}
       <div className="mt-auto">
-        <button
-          className="btn btn-primary"
-          onClick={handleNext}
-          disabled={saving}
-        >
-          {saving ? '…' : isLastStep ? `✅ ${t.finish}` : `${t.next} →`}
+        <button className="btn btn-primary" onClick={handleNext} disabled={saving}>
+          {saving
+            ? <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> …</>
+            : isLastStep ? `✅ ${t.finish}` : `${t.next} →`
+          }
         </button>
       </div>
     </div>
