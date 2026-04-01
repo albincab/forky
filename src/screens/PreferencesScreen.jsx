@@ -67,7 +67,7 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
       })
       onDone()
     } catch {
-      setError(t.claudeError)
+      setError(t.prefsError)
     } finally {
       setSaving(false)
     }

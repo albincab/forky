@@ -125,6 +125,7 @@ export default {
   sessionClosed: 'This session is already closed.',
   apiKeyMissing: 'API key missing — add VITE_CLAUDE_API_KEY to your .env file',
   claudeError: 'Search error. Please try again.',
+  prefsError: 'Failed to save preferences. Please try again.',
   mealModeRequired: 'Please choose your meal type.',
 
   // Budget options

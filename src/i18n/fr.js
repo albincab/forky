@@ -125,6 +125,7 @@ export default {
   sessionClosed: 'Cette session est déjà fermée.',
   apiKeyMissing: "Clé API manquante — ajoutez VITE_CLAUDE_API_KEY dans votre fichier .env",
   claudeError: 'Erreur lors de la recherche. Veuillez réessayer.',
+  prefsError: 'Erreur lors de l\'enregistrement. Veuillez réessayer.',
   mealModeRequired: 'Veuillez choisir votre mode de repas.',
 
   // Budget options
