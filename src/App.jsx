@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { detectLang, getTranslations } from './i18n/index.js'
-import { getSession } from './services/sessionService.js'
+import { getSession, addToHistory } from './services/sessionService.js'
 import HomeScreen from './screens/HomeScreen.jsx'
 import CreateScreen from './screens/CreateScreen.jsx'
 import JoinScreen from './screens/JoinScreen.jsx'
 import PreferencesScreen from './screens/PreferencesScreen.jsx'
 import WaitingRoomScreen from './screens/WaitingRoomScreen.jsx'
 import ResultsScreen from './screens/ResultsScreen.jsx'
+import MyLunchesScreen from './screens/MyLunchesScreen.jsx'
 
 export default function App() {
   const [lang] = useState(() => detectLang())
@@ -19,6 +20,8 @@ export default function App() {
   const [userId,        setUserId]        = useState(null)
   const [isOrganizer,   setIsOrganizer]   = useState(false)
   const [prefilledCode, setPrefilledCode] = useState(null)
+  // Where to go after completing/editing preferences: 'waiting' | 'mylunches'
+  const [afterPrefs,    setAfterPrefs]    = useState('waiting')
 
   // ─── Init: resolve screen from localStorage + Supabase ─────────────────────
   // localStorage (not sessionStorage) → persists after closing the browser tab
@@ -79,6 +82,7 @@ export default function App() {
     localStorage.setItem('atable_code',      code)
     localStorage.setItem('atable_uid',       uid)
     localStorage.setItem('atable_organizer', String(organizer))
+    addToHistory({ code, participantId: uid, isOrganizer: organizer })
     setSessionCode(code)
     setUserId(uid)
     setIsOrganizer(organizer)
@@ -111,6 +115,28 @@ export default function App() {
     setScreen('home')
   }
 
+  // Rejoin a session from MyLunches (switch active session)
+  async function handleRejoinFromHistory(entry) {
+    persistIdentity({
+      code:      entry.session.code,
+      uid:       entry.participantId,
+      organizer: entry.isOrganizer,
+    })
+    const hasResults = entry.session.results?.out?.length > 0 || entry.session.results?.takeout?.length > 0
+    setScreen(hasResults ? 'results' : 'waiting')
+  }
+
+  // Edit prefs from MyLunches — return to MyLunches after done
+  function handleEditFromHistory(entry) {
+    persistIdentity({
+      code:      entry.session.code,
+      uid:       entry.participantId,
+      organizer: entry.isOrganizer,
+    })
+    setAfterPrefs('mylunches')
+    setScreen('preferences')
+  }
+
   function goJoin(code) {
     if (code) setPrefilledCode(code)
     setScreen('join')
@@ -133,7 +159,12 @@ export default function App() {
   return (
     <div className="app">
       {screen === 'home' && (
-        <HomeScreen t={t} onCreate={() => setScreen('create')} onJoin={goJoin} />
+        <HomeScreen
+          t={t}
+          onCreate={() => setScreen('create')}
+          onJoin={goJoin}
+          onMyLunches={() => setScreen('mylunches')}
+        />
       )}
 
       {screen === 'create' && (
@@ -154,8 +185,15 @@ export default function App() {
           t={t}
           sessionCode={sessionCode}
           userId={userId}
-          onBack={handleLeave}
-          onDone={() => setScreen('waiting')}
+          onBack={() => {
+            if (afterPrefs === 'mylunches') { setAfterPrefs('waiting'); setScreen('mylunches') }
+            else handleLeave()
+          }}
+          onDone={() => {
+            const dest = afterPrefs
+            setAfterPrefs('waiting')
+            setScreen(dest)
+          }}
         />
       )}
 
@@ -169,6 +207,15 @@ export default function App() {
           onLeave={handleLeave}
           onEditPrefs={() => setScreen('preferences')}
           onResultsReady={() => setScreen('results')}
+        />
+      )}
+
+      {screen === 'mylunches' && (
+        <MyLunchesScreen
+          t={t}
+          onBack={() => setScreen('home')}
+          onRejoin={handleRejoinFromHistory}
+          onEdit={handleEditFromHistory}
         />
       )}
 

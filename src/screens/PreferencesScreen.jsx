@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { updateParticipantPrefs } from '../services/sessionService.js'
+import { useState, useEffect } from 'react'
+import { updateParticipantPrefs, getSession } from '../services/sessionService.js'
 
 // ─── Step 1: Meal mode ────────────────────────────────────────────────────────
 function StepMealMode({ t, value, onChange }) {
@@ -168,6 +168,23 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
   const [allergies,  setAllergies]  = useState([])
   const [error,      setError]      = useState('')
   const [saving,     setSaving]     = useState(false)
+  const [loadingPrefs, setLoadingPrefs] = useState(true)
+
+  // Pre-load existing preferences (edit mode)
+  useEffect(() => {
+    async function loadExisting() {
+      const session = await getSession(sessionCode)
+      const participant = session?.participants.find(p => p.id === userId)
+      if (participant?.prefsComplete) {
+        setMealMode(participant.mealMode)
+        setCuisines(participant.cuisines || [])
+        setBudget(participant.budget)
+        setAllergies(participant.allergies || [])
+      }
+      setLoadingPrefs(false)
+    }
+    loadExisting()
+  }, [sessionCode, userId])
 
   const isHomemade  = mealMode === 'homemade'
   const isLastStep  = stepIdx === ALL_STEPS.length - 1
@@ -218,6 +235,14 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
       return
     }
     setStepIdx(getPrevIdx(stepIdx))
+  }
+
+  if (loadingPrefs) {
+    return (
+      <div className="screen" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner-wrap"><div className="spinner" /></div>
+      </div>
+    )
   }
 
   return (

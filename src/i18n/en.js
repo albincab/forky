@@ -6,6 +6,18 @@ export default {
   ctaJoin: 'I got the code',
   publicSessionsTitle: "Today's lunches",
   publicSessionsEmpty: 'No lunches in progress. Start yours!',
+  myLunches: 'My lunches',
+  myLunchesEmpty: "You haven't joined any lunch yet.",
+  myLunchesTitle: 'My lunches',
+  rejoin: 'Rejoin',
+  cancelParticipation: 'Cancel my participation',
+  cancelConfirm: 'Cancel your participation in this lunch?',
+  statusWaiting: 'Waiting',
+  statusResults: '🎉 Results ready',
+  statusDone: 'Done',
+  statusPrefsNeeded: 'Preferences needed',
+  youAreOrganizer: 'You are the organizer',
+  loadingMyLunches: 'Loading your lunches…',
 
   // Session creation
   createTitle: 'Start a lunch',

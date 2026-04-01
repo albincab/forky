@@ -203,6 +203,34 @@ export async function getPublicSessions() {
   return rows.map(row => buildSession(row, row.participants ?? []))
 }
 
+// ─── Session history (localStorage) ──────────────────────────────────────────
+
+const HISTORY_KEY = 'atable_history'
+
+/** Reads the list of sessions the user has joined, stored locally */
+export function getSessionsHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
+  } catch {
+    return []
+  }
+}
+
+/** Adds a session to the user's local history (no duplicates, max 30) */
+export function addToHistory({ code, participantId, isOrganizer }) {
+  const history = getSessionsHistory().filter(h => h.code !== code)
+  history.unshift({ code, participantId, isOrganizer, joinedAt: Date.now() })
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 30)))
+}
+
+/** Removes a session from the local history */
+export function removeFromHistory(code) {
+  const history = getSessionsHistory().filter(h => h.code !== code)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+}
+
+// ─── Leave session ────────────────────────────────────────────────────────────
+
 /**
  * Removes a participant from a session.
  * The organizer cannot leave (they must close the session instead).

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getPublicSessions } from '../services/sessionService.js'
 import PublicSessionsList from '../components/PublicSessionsList.jsx'
 
-export default function HomeScreen({ t, onCreate, onJoin }) {
+export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
   const [publicSessions, setPublicSessions] = useState([])
 
   async function refresh() {
@@ -31,6 +31,9 @@ export default function HomeScreen({ t, onCreate, onJoin }) {
         </button>
         <button className="btn btn-secondary" onClick={() => onJoin(null)}>
           🎟️ {t.ctaJoin}
+        </button>
+        <button className="btn btn-outline" onClick={onMyLunches}>
+          📋 {t.myLunches}
         </button>
       </div>
 

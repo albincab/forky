@@ -6,6 +6,18 @@ export default {
   ctaJoin: "On m'a invité·e",
   publicSessionsTitle: 'Repas du jour',
   publicSessionsEmpty: 'Aucun déjeuner en cours. Lancez le vôtre !',
+  myLunches: 'Mes déjeuners',
+  myLunchesEmpty: "Vous n'avez encore rejoint aucun déjeuner.",
+  myLunchesTitle: 'Mes déjeuners',
+  rejoin: 'Rejoindre',
+  cancelParticipation: 'Annuler ma participation',
+  cancelConfirm: 'Annuler votre participation à ce déjeuner ?',
+  statusWaiting: 'En attente',
+  statusResults: '🎉 Résultats disponibles',
+  statusDone: 'Terminé',
+  statusPrefsNeeded: 'Préférences à compléter',
+  youAreOrganizer: 'Vous êtes l\'organisateur',
+  loadingMyLunches: 'Chargement de vos déjeuners…',
 
   // Session creation
   createTitle: 'Lancer un déjeuner',
