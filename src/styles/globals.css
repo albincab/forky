@@ -293,6 +293,17 @@ p  { color: var(--text-muted); font-size: 0.9rem; }
 }
 .meal-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
 .meal-info { flex: 1; display: flex; flex-direction: column; }
+
+.meal-option--secondary {
+  padding: 12px 16px;
+  background: var(--cream);
+  border-color: #ddd;
+}
+.meal-option--secondary .meal-icon { font-size: 1.4rem; }
+.meal-option--secondary .meal-title { font-size: 0.9rem; color: var(--text-muted); }
+.meal-option--secondary .meal-desc  { font-size: 0.78rem; color: var(--text-muted); }
+.meal-option--secondary:hover { border-color: #bbb; box-shadow: none; }
+.meal-option--secondary.selected { border-color: var(--text-muted); background: var(--sand); }
 .meal-title { font-weight: 700; color: var(--brown); font-size: 1rem; }
 .meal-desc  { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
 
@@ -543,6 +554,15 @@ p  { color: var(--text-muted); font-size: 0.9rem; }
 }
 
 /* ─── Waiting room ────────────────────────────────────────────────────────── */
+.prefs-counter {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: right;
+  padding: 0 2px;
+}
+.prefs-counter--done { color: var(--success); }
+
 .waiting-banner {
   text-align: center;
   padding: 28px 20px;
@@ -598,6 +618,14 @@ p  { color: var(--text-muted); font-size: 0.9rem; }
   color: var(--text-muted);
   align-items: center;
 }
+.restaurant-address-link {
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: opacity var(--transition);
+}
+.restaurant-address-link:hover { opacity: 0.75; }
+
 .restaurant-note {
   display: inline-flex;
   align-items: center;

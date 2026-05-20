@@ -90,11 +90,15 @@ export default function WaitingRoomScreen({
     const s = await getSession(sessionCode)
     if (!s) return
     setSession(s)
-    if (!isOrganizer) {
-      const hasResults = s.results?.out?.length > 0
-      if (hasResults) onResultsReady()
+    if (s.results?.out?.length > 0) {
+      document.title = '🎉 Résultats disponibles — À TABLE!'
+      if (!isOrganizer) onResultsReady()
     }
   }, [sessionCode, isOrganizer, onResultsReady])
+
+  useEffect(() => {
+    return () => { document.title = 'À TABLE!' }
+  }, [])
 
   useEffect(() => {
     loadSession()
@@ -144,6 +148,8 @@ export default function WaitingRoomScreen({
   const hasResults    = session.results?.out?.length > 0
   const searchStarted = session.searchedOut || session.searchingOut
   const organizerName = participants.find(p => p.isOrganizer)?.name || ''
+  const prefsCount    = participants.filter(p => p.prefsComplete).length
+  const prefsTotal    = participants.length
 
   return (
     <div className="screen">
@@ -161,6 +167,12 @@ export default function WaitingRoomScreen({
       {isOrganizer && <SharePanel code={sessionCode} t={t} />}
 
       <GroupSummary participants={participants} t={t} />
+
+      <div className="prefs-counter" aria-live="polite">
+        <span className={prefsCount === prefsTotal ? 'prefs-counter--done' : ''}>
+          {prefsCount === prefsTotal ? '✅' : '⏳'} {prefsCount}/{prefsTotal} prefs complétées
+        </span>
+      </div>
 
       <div className="flex-col" style={{ gap: 8 }} aria-live="polite">
         {participants.map(p => <ParticipantCard key={p.id} participant={p} t={t} />)}

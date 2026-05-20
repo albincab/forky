@@ -2,8 +2,7 @@
 
 const API_URL = 'https://api.anthropic.com/v1/messages'
 
-// Model specified in the CDC — update if needed
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 
 // Budget order from lowest to highest (for finding the most restrictive)
 const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
@@ -96,6 +95,7 @@ export async function getRecommendations({ participants, mode, lang }) {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
       model: MODEL,

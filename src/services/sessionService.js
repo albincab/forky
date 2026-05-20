@@ -32,7 +32,7 @@ function buildSession(row, participants = []) {
       id:             p.id,
       name:           p.name,
       isOrganizer:    p.is_organizer,
-      mealMode:       p.meal_mode      ?? null,
+      mealMode:       p.meal_mode === 'homemade' ? 'inplace' : (p.meal_mode ?? null),
       cuisines:       p.cuisines       ?? [],
       budget:         p.budget         ?? null,
       allergies:      p.allergies      ?? [],
@@ -153,7 +153,7 @@ export async function updateParticipantPrefs({ code, participantId, prefs }) {
   const { error } = await supabase
     .from('participants')
     .update({
-      meal_mode:      prefs.mealMode      ?? null,
+      meal_mode:      prefs.mealMode === 'inplace' ? 'homemade' : (prefs.mealMode ?? null),
       cuisines:       prefs.cuisines      ?? [],
       budget:         prefs.budget        ?? null,
       allergies:      prefs.allergies     ?? [],

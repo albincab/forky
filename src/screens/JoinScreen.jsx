@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { joinSession } from '../services/sessionService.js'
 
 export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
@@ -6,6 +6,14 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
   const [code,    setCode]    = useState(initialCode || '')
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (initialCode || code) return
+    navigator.clipboard?.readText().then(text => {
+      const trimmed = text.trim().toUpperCase()
+      if (/^[A-Z2-9]{4}$/.test(trimmed)) setCode(trimmed)
+    }).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSubmit(e) {
     e.preventDefault()

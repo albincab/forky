@@ -20,9 +20,16 @@ function RestaurantCard({ restaurant, isTopPick, t }) {
         </div>
       </div>
       {adresse && (
-        <div className="restaurant-meta">
+        <a
+          className="restaurant-meta restaurant-address-link"
+          href={`https://www.google.com/maps/search/${encodeURIComponent(name + ' ' + adresse + ' Saint-Étienne')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Ouvrir ${adresse} dans Google Maps`}
+        >
           <span>📍 {adresse}</span>
-        </div>
+          <span style={{ fontSize: '0.8rem', color: 'var(--honey)', marginLeft: 4 }}>↗</span>
+        </a>
       )}
       {pourquoi && <p className="restaurant-why">"{pourquoi}"</p>}
     </div>

@@ -95,13 +95,13 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
         <div className="flex-col" style={{ gap: 10 }}>
           <h2>{t.step1Label}</h2>
           {[
-            { key: 'out',     icon: '🍽️', label: t.mealOut,    desc: t.mealOutDesc },
-            { key: 'inplace', icon: '🏠', label: t.mealInPlace, desc: t.mealInPlaceDesc },
+            { key: 'out',     icon: '🍽️', label: t.mealOut,    desc: t.mealOutDesc,    secondary: false },
+            { key: 'inplace', icon: '🏠', label: t.mealInPlace, desc: t.mealInPlaceDesc, secondary: true  },
           ].map(o => (
             <button
               key={o.key}
               type="button"
-              className={`meal-option ${mealMode === o.key ? 'selected' : ''}`}
+              className={`meal-option ${o.secondary ? 'meal-option--secondary' : ''} ${mealMode === o.key ? 'selected' : ''}`}
               onClick={() => { setMealMode(o.key); setError('') }}
               aria-pressed={mealMode === o.key}
             >

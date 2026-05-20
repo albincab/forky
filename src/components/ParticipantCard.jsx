@@ -8,19 +8,19 @@ function nameToColor(name) {
   return palette[Math.abs(hash) % palette.length]
 }
 
-const MEAL_ICONS = { out: '🍽️', homemade: '🥡', takeout: '📦' }
+const MEAL_ICONS = { out: '🍽️', inplace: '🥡', takeout: '📦' }
 
 export default function ParticipantCard({ participant, t }) {
   const { name, isOrganizer, mealMode, cuisines, budget, allergies, prefsComplete } = participant
   const initials = name.slice(0, 2).toUpperCase()
 
   const modeLabel = {
-    out:      t.mealOut,
-    homemade: t.mealHomemade,
-    takeout:  t.mealTakeout,
+    out:     t.mealOut,
+    inplace: t.mealInPlace,
+    takeout: t.mealTakeout,
   }[mealMode] || '…'
 
-  const modeTagClass = { out: 'tag-out', homemade: 'tag-homemade', takeout: 'tag-takeout' }[mealMode] || 'tag-homemade'
+  const modeTagClass = { out: 'tag-out', inplace: 'tag-homemade', takeout: 'tag-takeout' }[mealMode] || 'tag-homemade'
 
   return (
     <div className="participant-card">
@@ -54,7 +54,7 @@ export default function ParticipantCard({ participant, t }) {
           )}
 
           {/* Budget */}
-          {budget && mealMode !== 'homemade' && (
+          {budget && mealMode !== 'inplace' && (
             <span className="tag tag-cuisine">{t.budgetOptions[budget]}</span>
           )}
 
