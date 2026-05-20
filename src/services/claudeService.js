@@ -1,6 +1,10 @@
 // Restaurant search via OpenStreetMap Overpass API — free, no API key required
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
+// kumi.systems is the primary mirror — overpass-api.de used as fallback
+const OVERPASS_ENDPOINTS = [
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
+]
 const SAINT_ETIENNE = { lat: 45.4397, lon: 4.3872 }
 const SEARCH_RADIUS = 2500 // metres
 
@@ -78,17 +82,25 @@ out body center;`
 }
 
 async function queryOverpass(query) {
-  const response = await fetch(OVERPASS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `data=${encodeURIComponent(query)}`,
-  })
-  if (!response.ok) throw new Error(`HTTP ${response.status}`)
-  const data = await response.json()
-  // Keep only elements that have a name tag; normalise way centres
-  return (data.elements || [])
-    .filter(el => el.tags?.name)
-    .map(el => ({ tags: el.tags, lat: el.center?.lat ?? el.lat, lon: el.center?.lon ?? el.lon }))
+  let lastError
+  for (const url of OVERPASS_ENDPOINTS) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `data=${encodeURIComponent(query)}`,
+      })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const data = await response.json()
+      return (data.elements || [])
+        .filter(el => el.tags?.name)
+        .map(el => ({ tags: el.tags, lat: el.center?.lat ?? el.lat, lon: el.center?.lon ?? el.lon }))
+    } catch (err) {
+      console.warn(`Overpass ${url} failed:`, err.message)
+      lastError = err
+    }
+  }
+  throw lastError
 }
 
 // Prefer entries with more OSM tags (richer data = more active listing)
