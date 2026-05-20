@@ -51,6 +51,10 @@ export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
           <span>🎟 {t.ctaJoin}</span>
           <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>↗</span>
         </button>
+        <button className="btn btn-outline" onClick={onMyLunches}>
+          <span>📋 {t.myLunches}</span>
+          <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>↓</span>
+        </button>
       </div>
 
       <hr className="rule-thick" />
@@ -103,16 +107,10 @@ export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
       {/* Footer */}
       <div style={{
         marginTop: 'auto',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         borderTop: '1.5px solid var(--ink)',
         paddingTop: 10,
+        textAlign: 'right',
       }}>
-        <span className="eyebrow">Sans compte · sans friction</span>
-        <button className="btn-ghost" onClick={onMyLunches}>
-          {t.myLunches}
-        </button>
         <span className="eyebrow">v{__APP_VERSION__}</span>
       </div>
     </div>
