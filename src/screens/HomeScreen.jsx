@@ -20,12 +20,6 @@ export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
   return (
     <div className="screen">
 
-      {/* Masthead */}
-      <div className="masthead">
-        <span>★ Édition du midi</span>
-        <span>N°042 · St-Étienne</span>
-      </div>
-
       {/* Logo lockup */}
       <AppLogo />
 
