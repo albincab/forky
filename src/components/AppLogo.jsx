@@ -11,20 +11,6 @@ export default function AppLogo() {
       gap: 8,
       boxShadow: '5px 5px 0 var(--red)',
     }}>
-      {/* Top meta bar */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 9,
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        color: 'var(--yellow)',
-      }}>
-        <span>st-étienne (42)</span>
-      </div>
-
       {/* Fork mark + title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <svg width="46" height="58" viewBox="0 0 46 58" fill="none" aria-hidden="true">
