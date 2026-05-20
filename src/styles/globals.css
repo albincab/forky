@@ -641,6 +641,36 @@ p  { color: var(--text-muted); font-size: 0.9rem; }
   line-height: 1.4;
 }
 
+/* ─── Results group summary ───────────────────────────────────────────────── */
+.results-group-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--sand);
+  border-radius: var(--r-card);
+}
+.results-group-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.results-group-icon { font-size: 1.2rem; line-height: 1.4; flex-shrink: 0; }
+.results-group-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.results-group-names {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brown);
+}
+
 /* ─── Modal ───────────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;

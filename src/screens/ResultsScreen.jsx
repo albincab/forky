@@ -68,6 +68,7 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
   }
 
   const { results, participants } = session
+  const outGroup     = participants.filter(p => p.mealMode === 'out')
   const inplaceGroup = participants.filter(p => p.mealMode === 'inplace')
   const hasAny = results?.out?.length > 0
 
@@ -78,14 +79,27 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
         <button className="btn-ghost" onClick={onLeave}>✕</button>
       </div>
 
-      {/* Sur place */}
-      {inplaceGroup.length > 0 && (
-        <div className="summary-bar" style={{ justifyContent: 'center' }}>
-          <span className="summary-item">
-            🏠 {inplaceGroup.map(p => p.name).join(', ')} — {t.inPlaceMsg}
-          </span>
-        </div>
-      )}
+      {/* Résumé du groupe */}
+      <div className="results-group-summary">
+        {outGroup.length > 0 && (
+          <div className="results-group-row">
+            <span className="results-group-icon">🍽️</span>
+            <div>
+              <span className="results-group-label">Au restaurant</span>
+              <span className="results-group-names">{outGroup.map(p => p.name).join(', ')}</span>
+            </div>
+          </div>
+        )}
+        {inplaceGroup.length > 0 && (
+          <div className="results-group-row">
+            <span className="results-group-icon">🏠</span>
+            <div>
+              <span className="results-group-label">Sur place</span>
+              <span className="results-group-names">{inplaceGroup.map(p => p.name).join(', ')}</span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {!hasAny && (
         <div className="waiting-banner"><p>{t.noResults}</p></div>
