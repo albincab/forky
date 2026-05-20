@@ -123,7 +123,7 @@ export default {
   codeRequired: 'Veuillez saisir le code de session.',
   sessionNotFound: 'Session introuvable. Vérifiez le code.',
   sessionClosed: 'Cette session est déjà fermée.',
-  apiKeyMissing: "Clé API manquante — ajoutez VITE_CLAUDE_API_KEY dans votre fichier .env",
+  apiKeyMissing: "Clé API manquante — ajoutez VITE_GOOGLE_PLACES_KEY dans votre fichier .env",
   claudeError: 'Erreur lors de la recherche. Veuillez réessayer.',
   prefsError: 'Erreur lors de l\'enregistrement. Veuillez réessayer.',
   mealModeRequired: 'Veuillez choisir votre mode de repas.',

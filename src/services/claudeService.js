@@ -1,125 +1,135 @@
-// Claude API integration — restaurant recommendation engine
+// Google Places API (New) — real restaurant search for Saint-Étienne
 
-const API_URL = 'https://api.anthropic.com/v1/messages'
+const PLACES_URL = 'https://places.googleapis.com/v1/places:searchText'
 
-const MODEL = 'claude-sonnet-4-6'
+const SAINT_ETIENNE = { latitude: 45.4397, longitude: 4.3872 }
+const SEARCH_RADIUS_METERS = 2500
 
-// Budget order from lowest to highest (for finding the most restrictive)
 const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
 
-const BUDGET_LABELS_FR = { '<15': '< 15€', '15-30': '15–30€', '30-50': '30–50€', '>50': '+ 50€' }
-const BUDGET_LABELS_EN = { '<15': '< €15', '15-30': '€15–30', '30-50': '€30–50', '>50': '€50+' }
-
-/**
- * Builds the prompt sent to Claude.
- * Exported separately so it can be unit-tested without an API call.
- *
- * @param {{ participants: Array, mode: 'out'|'takeout', lang: 'fr'|'en' }}
- * @returns {string}
- */
-export function buildPrompt({ participants, mode, lang }) {
-  const n = participants.length
-  const names = participants.map(p => p.name).join(', ')
-
-  // Count cuisine votes
-  const votes = {}
-  participants.forEach(p =>
-    (p.cuisines || []).forEach(c => { votes[c] = (votes[c] || 0) + 1 })
-  )
-  const cuisineStr = Object.entries(votes)
-    .sort((a, b) => b[1] - a[1])
-    .map(([c, v]) => `${c} (${v})`)
-    .join(', ')
-
-  // Collect all allergies (union — each one is imperative)
-  const allAllergies = [...new Set(participants.flatMap(p => p.allergies || []))]
-
-  // Find the most restrictive budget
-  const budgets = participants.map(p => p.budget).filter(Boolean)
-  const minIdx = budgets.length > 0
-    ? Math.min(...budgets.map(b => BUDGET_ORDER.indexOf(b)).filter(i => i >= 0))
-    : 1
-  const budgetKey = BUDGET_ORDER[Math.max(0, minIdx)]
-
-  const isTakeout = mode === 'takeout'
-
-  if (lang === 'fr') {
-    const allergyStr = allAllergies.length > 0 ? allAllergies.join(', ') : 'Aucune'
-    const budgetStr = BUDGET_LABELS_FR[budgetKey]
-    return `Restaurants réels à Saint-Étienne (France) pour ${n} personne${n > 1 ? 's' : ''} aujourd'hui midi.
-Participants : ${names}
-Envies de cuisines (votes cumulés) : ${cuisineStr || 'Pas de préférence particulière'}
-Allergies / contraintes alimentaires : ${allergyStr} ← IMPÉRATIVES, aucun écart toléré
-Budget maximum par personne : ${budgetStr}
-${isTakeout ? 'Mode : UNIQUEMENT des restaurants proposant la commande à emporter ou la livraison.' : 'Mode : restaurants pour déjeuner sur place.'}
-
-Propose exactement 3 restaurants RÉELS situés à Saint-Étienne qui conviennent à TOUS les participants.
-Sois précis sur les adresses (rue + quartier). Le premier doit être ton meilleur choix global.
-
-Réponds UNIQUEMENT avec du JSON valide, sans aucun texte avant ou après le tableau :
-[{"name":"...","cuisine":"...","adresse":"...","budget":"...","note":"4.2/5","pourquoi":"..."}]`
-  }
-
-  const allergyStr = allAllergies.length > 0 ? allAllergies.join(', ') : 'None'
-  const budgetStr = BUDGET_LABELS_EN[budgetKey]
-  return `Real restaurants in Saint-Étienne, France for ${n} person${n > 1 ? 's' : ''} for lunch today.
-Participants: ${names}
-Cuisine preferences (votes): ${cuisineStr || 'No particular preference'}
-Allergies / dietary restrictions: ${allergyStr} ← MANDATORY, no exceptions
-Maximum budget per person: ${budgetStr}
-${isTakeout ? 'Mode: ONLY restaurants offering takeout or delivery.' : 'Mode: restaurants for dining in.'}
-
-Suggest exactly 3 REAL restaurants in Saint-Étienne that work for ALL participants.
-Be specific about addresses (street + neighbourhood). The first should be your top overall pick.
-
-Reply ONLY with valid JSON, no text before or after the array:
-[{"name":"...","cuisine":"...","adresse":"...","budget":"...","note":"4.2/5","pourquoi":"..."}]`
+const BUDGET_TO_PRICE_LEVELS = {
+  '<15':   ['PRICE_LEVEL_INEXPENSIVE'],
+  '15-30': ['PRICE_LEVEL_INEXPENSIVE', 'PRICE_LEVEL_MODERATE'],
+  '30-50': ['PRICE_LEVEL_MODERATE', 'PRICE_LEVEL_EXPENSIVE'],
+  '>50':   ['PRICE_LEVEL_EXPENSIVE', 'PRICE_LEVEL_VERY_EXPENSIVE'],
 }
 
-/**
- * Fetches restaurant recommendations from Claude.
- * @param {{ participants: Array, mode: 'out'|'takeout', lang: 'fr'|'en' }}
- * @returns {Promise<Array>} Array of restaurant objects
- */
-export async function getRecommendations({ participants, mode, lang }) {
-  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY
-  if (!apiKey) {
-    throw new Error('VITE_CLAUDE_API_KEY_MISSING')
+const PRICE_LEVEL_LABELS = {
+  PRICE_LEVEL_FREE:           '< 5€',
+  PRICE_LEVEL_INEXPENSIVE:    '< 15€',
+  PRICE_LEVEL_MODERATE:       '15–30€',
+  PRICE_LEVEL_EXPENSIVE:      '30–50€',
+  PRICE_LEVEL_VERY_EXPENSIVE: '> 50€',
+}
+
+const CUISINE_KEYWORDS = {
+  'Française':    'cuisine française',
+  'Italienne':    'restaurant italien',
+  'Japonaise':    'restaurant japonais sushi',
+  'Pizza':        'pizzeria',
+  'Burger':       'burger',
+  'Asiatique':    'restaurant asiatique',
+  'Végétarienne': 'restaurant végétarien',
+  'Brasserie':    'brasserie bistrot',
+  'Libanaise':    'restaurant libanais',
+  'Mexicaine':    'restaurant mexicain',
+}
+
+const FIELD_MASK = [
+  'places.displayName',
+  'places.formattedAddress',
+  'places.rating',
+  'places.priceLevel',
+  'places.primaryTypeDisplayName',
+  'places.editorialSummary',
+].join(',')
+
+function getMostRestrictiveBudget(participants) {
+  const budgets = participants.map(p => p.budget).filter(Boolean)
+  if (budgets.length === 0) return '15-30'
+  const minIdx = Math.min(...budgets.map(b => BUDGET_ORDER.indexOf(b)).filter(i => i >= 0))
+  return BUDGET_ORDER[Math.max(0, minIdx)]
+}
+
+function getTopCuisines(participants) {
+  const votes = {}
+  participants.forEach(p => (p.cuisines || []).forEach(c => { votes[c] = (votes[c] || 0) + 1 }))
+  return Object.entries(votes).sort((a, b) => b[1] - a[1]).map(([c]) => c)
+}
+
+function buildWhy(place, topCuisines) {
+  if (place.editorialSummary?.text) return place.editorialSummary.text
+  const parts = []
+  if (place.rating >= 4.5) parts.push('Très bien noté')
+  else if (place.rating >= 4.0) parts.push('Bien noté dans le quartier')
+  if (topCuisines.length > 0) parts.push('Correspond aux envies du groupe')
+  return parts.join(' · ') || 'Sélectionné pour ce midi à Saint-Étienne'
+}
+
+async function searchPlaces(apiKey, textQuery, priceLevels) {
+  const body = {
+    textQuery,
+    includedType: 'restaurant',
+    locationBias: {
+      circle: { center: SAINT_ETIENNE, radius: SEARCH_RADIUS_METERS },
+    },
+    maxResultCount: 5,
   }
+  if (priceLevels) body.priceLevels = priceLevels
 
-  const prompt = buildPrompt({ participants, mode, lang })
-
-  const response = await fetch(API_URL, {
+  const response = await fetch(PLACES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': FIELD_MASK,
     },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: prompt }],
-    }),
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {
-    const errBody = await response.json().catch(() => ({}))
-    throw new Error(errBody.error?.message || `HTTP ${response.status}`)
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error?.message || `HTTP ${response.status}`)
   }
 
   const data = await response.json()
-  const text = data.content?.[0]?.text || ''
+  return data.places || []
+}
 
-  // Extract JSON array from the response (Claude sometimes wraps in code fences)
-  const match = text.match(/\[[\s\S]*\]/)
-  if (!match) throw new Error('PARSE_ERROR')
+/**
+ * Fetches real restaurant recommendations from Google Places API (New).
+ * Falls back to a broader search if price filter returns no results.
+ *
+ * @param {{ participants: Array, mode: 'out'|'takeout' }}
+ * @returns {Promise<Array>} Array of restaurant objects
+ */
+export async function getRecommendations({ participants, mode }) {
+  const apiKey = import.meta.env.VITE_GOOGLE_PLACES_KEY
+  if (!apiKey) throw new Error('GOOGLE_PLACES_KEY_MISSING')
 
-  const restaurants = JSON.parse(match[0])
-  if (!Array.isArray(restaurants) || restaurants.length === 0) {
-    throw new Error('EMPTY_RESULTS')
+  const topCuisines = getTopCuisines(participants)
+  const budgetKey   = getMostRestrictiveBudget(participants)
+  const priceLevels = BUDGET_TO_PRICE_LEVELS[budgetKey]
+
+  const cuisineKw = topCuisines.length > 0
+    ? (CUISINE_KEYWORDS[topCuisines[0]] || topCuisines[0])
+    : 'restaurant'
+  const modeKw  = mode === 'takeout' ? 'livraison à emporter' : 'déjeuner midi'
+  const textQuery = `${cuisineKw} ${modeKw} Saint-Étienne`
+
+  // Try with price filter first, fall back to no filter if empty
+  let places = await searchPlaces(apiKey, textQuery, priceLevels)
+  if (places.length === 0) {
+    places = await searchPlaces(apiKey, textQuery, null)
   }
+  if (places.length === 0) throw new Error('EMPTY_RESULTS')
 
-  return restaurants.slice(0, 3)
+  return places.slice(0, 3).map(p => ({
+    name:     p.displayName?.text || 'Restaurant',
+    cuisine:  p.primaryTypeDisplayName?.text || topCuisines[0] || 'Restaurant',
+    adresse:  p.formattedAddress || '',
+    budget:   PRICE_LEVEL_LABELS[p.priceLevel] || '',
+    note:     p.rating ? `${p.rating}/5` : null,
+    pourquoi: buildWhy(p, topCuisines),
+  }))
 }

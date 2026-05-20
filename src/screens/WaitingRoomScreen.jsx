@@ -118,7 +118,7 @@ export default function WaitingRoomScreen({
       onResultsReady()
     } catch (err) {
       await setSearching({ code: sessionCode, mode: 'out', value: false })
-      setErrorOut(err.message === 'VITE_CLAUDE_API_KEY_MISSING' ? t.apiKeyMissing : t.claudeError)
+      setErrorOut(err.message === 'GOOGLE_PLACES_KEY_MISSING' ? t.apiKeyMissing : t.claudeError)
     } finally {
       setLoadingOut(false)
     }
