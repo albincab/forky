@@ -25,22 +25,6 @@ export default function AppLogo() {
           <span>Table!</span>
         </div>
       </div>
-
-      {/* Footer tagline */}
-      <div style={{
-        borderTop: '1px dashed rgba(238,234,217,0.4)',
-        paddingTop: 8,
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 10,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        color: '#C9C2A8',
-        display: 'flex',
-        justifyContent: 'space-between',
-      }}>
-        <span>le journal du midi</span>
-        <span>n°042</span>
-      </div>
     </div>
   )
 }
