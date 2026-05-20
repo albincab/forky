@@ -11,70 +11,10 @@ import {
 import { getRecommendations } from '../services/claudeService.js'
 import ParticipantCard from '../components/ParticipantCard.jsx'
 import QRCodeModal from '../components/QRCodeModal.jsx'
+import CodeStrip from '../components/CodeStrip.jsx'
 
 function getSessionUrl(code) {
   return `${window.location.origin}${window.location.pathname}?code=${code}`
-}
-
-// ─── Share panel ──────────────────────────────────────────────────────────────
-function SharePanel({ code, t }) {
-  const [copied, setCopied] = useState(false)
-  const [showQR, setShowQR] = useState(false)
-  const url = getSessionUrl(code)
-
-  function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  function shareTeams() {
-    const msg = t.teamsMsg.replace('{code}', code).replace('{url}', url)
-    window.location.href = `msteams://l/chat/0/0?message=${encodeURIComponent(msg)}`
-  }
-
-  return (
-    <>
-      <div className="code-display">
-        <div className="code-value" aria-label={`Code : ${code}`}>{code}</div>
-        <p className="code-hint">{t.codeHint}</p>
-        <button
-          className="btn btn-cta btn-sm"
-          onClick={() => copyText(code)}
-          style={{ width: 'auto', minWidth: 160 }}
-        >
-          {copied ? `✓ ${t.copied}` : `📋 ${t.copyCode}`}
-        </button>
-      </div>
-
-      <div className="btn-icon-row">
-        <button className="btn-icon" onClick={shareTeams}>💬 {t.shareTeams}</button>
-        <button className="btn-icon" onClick={() => copyText(url)}>🔗 {t.copyLink}</button>
-        <button className="btn-icon" onClick={() => setShowQR(true)}>⬜ {t.showQR}</button>
-      </div>
-
-      {showQR && <QRCodeModal url={url} t={t} onClose={() => setShowQR(false)} />}
-    </>
-  )
-}
-
-// ─── Group summary ────────────────────────────────────────────────────────────
-function GroupSummary({ participants, t }) {
-  const out     = participants.filter(p => p.mealMode === 'out').length
-  const inplace = participants.filter(p => p.mealMode === 'inplace').length
-
-  return (
-    <div className="summary-bar" aria-live="polite">
-      <span className="summary-item">🍽️ {out} {t.mealOut}</span>
-      {inplace > 0 && (
-        <>
-          <span style={{ color: 'var(--text-muted)' }}>·</span>
-          <span className="summary-item">🏠 {inplace} {t.mealInPlace}</span>
-        </>
-      )}
-    </div>
-  )
 }
 
 // ─── Main WaitingRoomScreen ───────────────────────────────────────────────────
@@ -85,6 +25,19 @@ export default function WaitingRoomScreen({
   const [loadingOut, setLoadingOut] = useState(false)
   const [errorOut,   setErrorOut]   = useState('')
   const [deleting,   setDeleting]   = useState(false)
+  const [copied,     setCopied]     = useState(false)
+  const [showQR,     setShowQR]     = useState(false)
+  const [time,       setTime]       = useState(() =>
+    new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' })
+  )
+
+  // Update clock every minute
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTime(new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }))
+    }, 60000)
+    return () => clearInterval(id)
+  }, [])
 
   const loadSession = useCallback(async () => {
     const s = await getSession(sessionCode)
@@ -116,7 +69,7 @@ export default function WaitingRoomScreen({
       const results = await getRecommendations({ participants: goingOut, mode: 'out', lang })
       await setResults({ code: sessionCode, mode: 'out', results })
       onResultsReady()
-    } catch (err) {
+    } catch {
       await setSearching({ code: sessionCode, mode: 'out', value: false })
       setErrorOut(t.claudeError)
     } finally {
@@ -135,6 +88,19 @@ export default function WaitingRoomScreen({
     }
   }
 
+  function copyCode() {
+    navigator.clipboard.writeText(sessionCode).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  function shareTeams() {
+    const url = getSessionUrl(sessionCode)
+    const msg = t.teamsMsg.replace('{code}', sessionCode).replace('{url}', url)
+    window.location.href = `msteams://l/chat/0/0?message=${encodeURIComponent(msg)}`
+  }
+
   if (!session) {
     return (
       <div className="screen" style={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -150,50 +116,103 @@ export default function WaitingRoomScreen({
   const organizerName = participants.find(p => p.isOrganizer)?.name || ''
   const prefsCount    = participants.filter(p => p.prefsComplete).length
   const prefsTotal    = participants.length
+  const outCount      = participants.filter(p => p.mealMode === 'out').length
+  const inplaceCount  = participants.filter(p => p.mealMode === 'inplace').length
 
   return (
     <div className="screen">
-      <div className="section-header">
-        <h1>{t.waitingRoomTitle}</h1>
-        <button
-          className="btn-ghost"
-          onClick={() => { if (window.confirm(t.leaveConfirm)) onLeave() }}
-          aria-label={t.leaveSession}
-        >
-          ✕
+      {/* Masthead */}
+      <div className="masthead">
+        <button onClick={() => { if (window.confirm(t.leaveConfirm)) onLeave() }} aria-label={t.leaveSession}>
+          ← QUITTER
         </button>
+        <span>● SALLE D'ATTENTE</span>
+        <span>{time}</span>
       </div>
 
-      {isOrganizer && <SharePanel code={sessionCode} t={t} />}
-
-      <GroupSummary participants={participants} t={t} />
-
-      <div className="prefs-counter" aria-live="polite">
-        <span className={prefsCount === prefsTotal ? 'prefs-counter--done' : ''}>
-          {prefsCount === prefsTotal ? '✅' : '⏳'} {prefsCount}/{prefsTotal} prefs complétées
+      {/* Header + stamp */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="display" style={{ fontSize: 34 }}>
+          <span>Tour de</span>
+          <span>table</span>
+        </div>
+        <span className={`stamp ${session.type === 'private' ? '' : ''}`}>
+          {session.type === 'private' ? '🔒 Privé' : '★ Public · ouvert'}
         </span>
       </div>
 
-      <div className="flex-col" style={{ gap: 8 }} aria-live="polite">
+      {/* Code de session */}
+      <div>
+        <div className="eyebrow" style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
+          <span>Code de session</span>
+          <span>à partager</span>
+        </div>
+        <CodeStrip code={sessionCode} />
+      </div>
+
+      {/* Action buttons */}
+      <div className="btn-icon-row">
+        <button className="iconbtn" onClick={copyCode} aria-label={t.copyCode}>
+          {copied ? `✓ ${t.copied}` : `📋 COPIER`}
+        </button>
+        <button className="iconbtn" onClick={shareTeams} aria-label={t.shareTeams}>
+          💬 TEAMS
+        </button>
+        <button className="iconbtn" onClick={() => setShowQR(true)} aria-label={t.showQR}>
+          ⬜ QR
+        </button>
+      </div>
+
+      {showQR && <QRCodeModal url={getSessionUrl(sessionCode)} t={t} onClose={() => setShowQR(false)} />}
+
+      {/* Group pills */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} aria-live="polite">
+        {outCount > 0 && (
+          <div className="group-pill">
+            <b>{outCount}</b>
+            <span>🍽️ sortent</span>
+          </div>
+        )}
+        {inplaceCount > 0 && (
+          <div className="group-pill">
+            <b>{inplaceCount}</b>
+            <span>🏠 gamelle</span>
+          </div>
+        )}
+        <div className="group-pill" style={{ background: 'var(--yellow)', color: 'var(--ink)', marginLeft: 'auto' }}>
+          <b style={{ color: 'var(--red)' }}>{prefsCount}/{prefsTotal}</b>
+          <span style={{ color: 'var(--ink)' }}>PRÊT</span>
+        </div>
+      </div>
+
+      <hr className="rule-thick" />
+      <div className="eyebrow">— participants —</div>
+
+      {/* Participant list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} aria-live="polite">
         {participants.map(p => <ParticipantCard key={p.id} participant={p} t={t} />)}
       </div>
 
       {participants.length === 1 && isOrganizer && (
-        <p className="text-center text-muted">{t.waitingEmpty}</p>
+        <p className="text-center text-muted" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>
+          {t.waitingEmpty}
+        </p>
       )}
 
-      {/* Participant actions */}
+      {/* Participant banner */}
       {!isOrganizer && (
         <div className="waiting-banner">
-          <p style={{ color: 'var(--brown)', fontWeight: 600 }}>
+          <p style={{ fontWeight: 600, fontSize: 13 }}>
             {t.waitingParticipant.replace('{name}', organizerName)}
           </p>
           {!searchStarted && (
-            <div className="btn-icon-row" style={{ marginTop: 12, justifyContent: 'center' }}>
-              <button className="btn-icon" onClick={onEditPrefs}>✏️ {t.editPrefs}</button>
+            <div className="btn-icon-row" style={{ marginTop: 10 }}>
+              <button className="iconbtn" onClick={onEditPrefs} aria-label={t.editPrefs}>
+                ✏️ {t.editPrefs}
+              </button>
               <button
-                className="btn-icon"
-                style={{ color: 'var(--error)', borderColor: 'var(--error)' }}
+                className="iconbtn"
+                style={{ color: 'var(--red)', borderColor: 'var(--red)' }}
                 onClick={async () => {
                   if (!window.confirm(t.leaveConfirm)) return
                   await leaveSession({ code: sessionCode, participantId: userId })
@@ -210,24 +229,31 @@ export default function WaitingRoomScreen({
       {/* Results CTA */}
       {hasResults && (
         <button className="btn btn-cta" onClick={onResultsReady}>
-          🎉 {t.viewResults}
+          <span>🎉 {t.viewResults}</span>
+          <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>→</span>
         </button>
       )}
 
-      {/* Organizer actions */}
+      {/* Organizer CTA */}
       {isOrganizer && !hasResults && (
         <div className="flex-col mt-auto" style={{ gap: 10 }}>
           {hasOut && (
             <>
               <button
-                className="btn btn-primary"
+                className="btn btn-red"
                 onClick={launchSearch}
                 disabled={loadingOut || session.searchedOut}
               >
-                {loadingOut
-                  ? <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> {t.searching}</>
-                  : session.searchedOut ? `✓ ${t.searchDone}` : t.launchSearchOut
-                }
+                {loadingOut ? (
+                  <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> {t.searching}</>
+                ) : session.searchedOut ? (
+                  <span>✓ {t.searchDone}</span>
+                ) : (
+                  <span>{t.launchSearchOut}</span>
+                )}
+                {!loadingOut && !session.searchedOut && (
+                  <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>→</span>
+                )}
               </button>
               {errorOut && <span className="error-msg" role="alert">⚠ {errorOut}</span>}
             </>
@@ -235,8 +261,8 @@ export default function WaitingRoomScreen({
 
           {!searchStarted && (
             <button
-              className="btn-icon"
-              style={{ color: 'var(--error)', borderColor: 'var(--error)', justifyContent: 'center' }}
+              className="iconbtn"
+              style={{ color: 'var(--red)', borderColor: 'var(--red)', flex: 'none', width: '100%' }}
               onClick={handleDelete}
               disabled={deleting}
             >

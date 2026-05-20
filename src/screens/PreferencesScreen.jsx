@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { updateParticipantPrefs, getSession } from '../services/sessionService.js'
 
+// Compute current step index 1-5 for progress bar
+function computeStep(mealMode, moreThanOneHour, backBy14h, cuisines, budget, allergies) {
+  if (!mealMode) return 0
+  if (mealMode === 'inplace') return 5 // all done for gamelle
+  if (!moreThanOneHour && !backBy14h) return 1
+  if (cuisines.length === 0) return 2
+  if (!budget) return 3
+  if (allergies.length === 0) return 4
+  return 5
+}
+
 export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDone }) {
   const [mealMode,        setMealMode]        = useState(null)
   const [cuisines,        setCuisines]        = useState([])
@@ -81,22 +92,35 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
     )
   }
 
+  const currentStep = computeStep(mealMode, moreThanOneHour, backBy14h, cuisines, budget, allergies)
+
   return (
     <div className="screen">
-      <div className="flex-row">
-        <button className="btn-ghost" onClick={onBack} aria-label={t.back} type="button">
-          ← {t.back}
-        </button>
+      {/* Masthead */}
+      <div className="masthead">
+        <button onClick={onBack} aria-label={t.back} type="button">← RETOUR</button>
+        <span>★ PRÉFÉRENCES</span>
+        <span></span>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {/* Progress bar segmentée */}
+      <div className="progress-bar" aria-label="Progression">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div
+            key={i}
+            className={`progress-bar-seg ${i < currentStep ? 'done' : i === currentStep ? 'active' : 'upcoming'}`}
+          />
+        ))}
+      </div>
 
-        {/* ── Mode de repas ─────────────────────────────────────────── */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+        {/* ── Mode de repas ──────────────────────────────────────────── */}
         <div className="flex-col" style={{ gap: 10 }}>
           <h2>{t.step1Label}</h2>
           {[
-            { key: 'out',     icon: '🍽️', label: t.mealOut,    desc: t.mealOutDesc,    secondary: false },
-            { key: 'inplace', icon: '🏠', label: t.mealInPlace, desc: t.mealInPlaceDesc, secondary: true  },
+            { key: 'out',     icon: '🍽️', label: t.mealOut,     desc: t.mealOutDesc,     secondary: false },
+            { key: 'inplace', icon: '🏠', label: t.mealInPlace,  desc: t.mealInPlaceDesc, secondary: true  },
           ].map(o => (
             <button
               key={o.key}
@@ -111,7 +135,11 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
                 <span className="meal-desc">{o.desc}</span>
               </span>
               {mealMode === o.key && (
-                <span aria-hidden="true" style={{ color: 'var(--success)', fontWeight: 700, fontSize: '1.1rem' }}>✓</span>
+                <span aria-hidden="true" style={{
+                  fontFamily: "'Boldonse', serif",
+                  fontSize: 20,
+                  color: 'var(--yellow)',
+                }}>✓</span>
               )}
             </button>
           ))}
@@ -147,7 +175,9 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
             {/* Cuisines */}
             <div className="flex-col pref-section--reveal" style={{ gap: 10 }}>
               <h2>{t.cuisineTitle}</h2>
-              <p style={{ marginTop: -6 }}>{t.cuisineSubtitle}</p>
+              <p style={{ marginTop: -6, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>
+                {t.cuisineSubtitle}
+              </p>
               <div className="chip-grid" role="group" aria-label={t.cuisineTitle}>
                 {t.cuisines.map(c => (
                   <button
@@ -158,9 +188,17 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
                     aria-pressed={cuisines.includes(c)}
                   >
                     <span aria-hidden="true">{t.cuisineEmojis[c]}</span> {c}
+                    {cuisines.includes(c) && (
+                      <span aria-hidden="true" style={{ fontFamily: "'Boldonse', serif", fontSize: 12, marginLeft: 2 }}>✓</span>
+                    )}
                   </button>
                 ))}
               </div>
+              {cuisines.length > 0 && (
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--mute)', textAlign: 'right' }}>
+                  {cuisines.length} sélectionnée{cuisines.length > 1 ? 's' : ''}
+                </div>
+              )}
             </div>
 
             {/* Budget */}
@@ -189,28 +227,53 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
                   <button
                     key={a}
                     type="button"
-                    className={`chip ${allergies.includes(a) ? 'selected' : ''}`}
+                    className={`chip ${allergies.includes(a) ? 'selected-allergy' : ''}`}
                     onClick={() => toggleChip(allergies, setAllergies, a)}
                     aria-pressed={allergies.includes(a)}
                   >
                     <span aria-hidden="true">{t.allergyEmojis[a]}</span> {a}
+                    {allergies.includes(a) && (
+                      <span aria-hidden="true" style={{ fontFamily: "'Boldonse', serif", fontSize: 12, marginLeft: 2 }}>⚠</span>
+                    )}
                   </button>
                 ))}
               </div>
               {allergies.length === 0 && (
                 <span className="pref-no-allergy">✓ {t.noAllergy}</span>
               )}
+              {allergies.length > 0 && (
+                <div style={{
+                  border: '1.5px solid var(--ink)',
+                  background: 'var(--ink)',
+                  color: 'var(--bg)',
+                  padding: '10px 14px',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                  <span>{allergies.length} contrainte{allergies.length > 1 ? 's' : ''} active{allergies.length > 1 ? 's' : ''}</span>
+                  <span style={{ background: 'var(--yellow)', color: 'var(--ink)', padding: '2px 8px', fontWeight: 700 }}>
+                    ★ OK
+                  </span>
+                </div>
+              )}
             </div>
           </>
         )}
 
-        <button type="submit" className="btn btn-primary" disabled={saving || !mealMode}>
-          {saving
-            ? <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> …</>
-            : `✅ ${t.finish}`
-          }
+        {/* Submit */}
+        <button type="submit" className="btn btn-red" disabled={saving || !mealMode}>
+          {saving ? (
+            <><div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> …</>
+          ) : (
+            <>
+              <span>✅ {t.finish}</span>
+              <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>→</span>
+            </>
+          )}
         </button>
-
       </form>
     </div>
   )

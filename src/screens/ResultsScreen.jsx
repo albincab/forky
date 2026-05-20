@@ -2,49 +2,57 @@ import { useState, useEffect } from 'react'
 import { getSession } from '../services/sessionService.js'
 import RestaurantMap from '../components/RestaurantMap.jsx'
 
-function RestaurantCard({ restaurant, isTopPick, t }) {
+// Single restaurant card — Affiche style
+function RestoCard({ restaurant, index, t }) {
   const { name, cuisine, adresse, budget, note, pourquoi } = restaurant
+  const isTop = index === 0
+  const num = String(index + 1).padStart(2, '0')
 
   return (
-    <div className={`restaurant-card ${isTopPick ? 'top-pick' : ''}`}>
-      {isTopPick && (
-        <div className="top-pick-badge" aria-label={t.topPick}>
-          ⭐ {t.topPick}
-        </div>
-      )}
-      <div>
-        <div className="restaurant-name">{name}</div>
-        <div className="restaurant-meta">
-          <span>🍴 {cuisine}</span>
-          {note && <span className="restaurant-note">★ {note}</span>}
-          {budget && <span>💶 {budget}</span>}
-        </div>
+    <div className={`resto ${isTop ? 'top' : ''}`}>
+      {isTop && <div className="resto-stamp" aria-label={t.topPick}>✦ TOP PICK</div>}
+
+      {/* Num + note */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <span className="resto-num">{num}</span>
+        {note && (
+          <div style={{
+            fontFamily: "'Boldonse', serif",
+            fontSize: 18,
+            color: isTop ? 'var(--yellow)' : 'var(--red)',
+          }}>
+            ★ {note}
+          </div>
+        )}
       </div>
-      {adresse && (
-        <a
-          className="restaurant-meta restaurant-address-link"
-          href={`https://www.google.com/maps/search/${encodeURIComponent(name + ' ' + adresse + ' Saint-Étienne')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Ouvrir ${adresse} dans Google Maps`}
-        >
-          <span>📍 {adresse}</span>
-          <span style={{ fontSize: '0.8rem', color: 'var(--honey)', marginLeft: 4 }}>↗</span>
-        </a>
-      )}
-      {pourquoi && <p className="restaurant-why">"{pourquoi}"</p>}
-    </div>
-  )
-}
 
-function ResultSection({ title, restaurants, t }) {
-  if (!restaurants?.length) return null
-  return (
-    <div className="flex-col" style={{ gap: 12 }}>
-      <h2>{title}</h2>
-      {restaurants.map((r, i) => (
-        <RestaurantCard key={i} restaurant={r} isTopPick={i === 0} t={t} />
-      ))}
+      {/* Name */}
+      <div className="resto-name">{name}</div>
+
+      {/* Meta */}
+      <div className="resto-meta">
+        {cuisine && <span>🍴 {cuisine}</span>}
+        {cuisine && budget && <span>·</span>}
+        {budget && <span>💶 {budget}</span>}
+        {adresse && (
+          <>
+            <span>·</span>
+            <a
+              className="restaurant-address-link"
+              href={`https://www.google.com/maps/search/${encodeURIComponent(name + ' ' + adresse + ' Saint-Étienne')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Ouvrir ${adresse} dans Google Maps`}
+              style={{ color: 'inherit' }}
+            >
+              📍 {adresse} ↗
+            </a>
+          </>
+        )}
+      </div>
+
+      {/* Why */}
+      {pourquoi && <div className="resto-why">"{pourquoi}"</div>}
     </div>
   )
 }
@@ -71,16 +79,37 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
   const { results, participants } = session
   const outGroup     = participants.filter(p => p.mealMode === 'out')
   const inplaceGroup = participants.filter(p => p.mealMode === 'inplace')
-  const hasAny = results?.out?.length > 0
+  const totalCount   = participants.length
+  const hasAny       = results?.out?.length > 0
 
   return (
     <div className="screen">
-      <div className="section-header">
-        <h1>{t.resultsTitle}</h1>
-        <button className="btn-ghost" onClick={onLeave}>✕</button>
+      {/* Masthead */}
+      <div className="masthead">
+        <button onClick={onLeave} aria-label={t.back}>← RETOUR</button>
+        <span>★ RECOMMANDATIONS</span>
+        <span>03 / 03</span>
       </div>
 
-      {/* Résumé du groupe */}
+      {/* Header */}
+      <div>
+        <div className="eyebrow">— le choix de la sagesse —</div>
+        <div className="display" style={{ fontSize: 36, marginTop: 4 }}>Trois adresses.</div>
+      </div>
+
+      {/* Subtitle */}
+      <div style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 10,
+        color: 'var(--mute)',
+        display: 'flex',
+        justifyContent: 'space-between',
+      }}>
+        <span>POUR {totalCount} GOURMAND{totalCount > 1 ? 'S' : ''}</span>
+        <span>ST-ÉTIENNE · 12H30</span>
+      </div>
+
+      {/* Group summary */}
       <div className="results-group-summary">
         {outGroup.length > 0 && (
           <div className="results-group-row">
@@ -103,19 +132,50 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
       </div>
 
       {!hasAny && (
-        <div className="waiting-banner"><p>{t.noResults}</p></div>
+        <div className="waiting-banner">
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>{t.noResults}</p>
+        </div>
       )}
 
+      {/* Map */}
       {results?.out?.length > 0 && <RestaurantMap restaurants={results.out} />}
 
-      <ResultSection title={t.sectionOut} restaurants={results?.out} t={t} />
+      {/* Resto cards */}
+      {results?.out?.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {results.out.map((r, i) => (
+            <RestoCard key={i} restaurant={r} index={i} t={t} />
+          ))}
+        </div>
+      )}
 
-      <div className="mt-auto flex-col">
-        <button className="btn btn-secondary" onClick={onBackToWaiting}>
-          ← {t.backToWaiting || 'Retour à la salle d\'attente'}
+      {/* Footer actions */}
+      <div className="btn-icon-row mt-auto">
+        <button
+          className="iconbtn"
+          onClick={onBackToWaiting}
+          aria-label={t.backToWaiting || 'Retenter'}
+        >
+          🔄
         </button>
-        <button className="btn btn-ghost" onClick={onLeave}>
-          🏠 {t.newSession}
+        <button
+          className="iconbtn"
+          onClick={() => {
+            const text = results?.out?.map(
+              (r, i) => `${i + 1}. ${r.name} — ${r.cuisine} · ${r.budget} · ${r.adresse || ''}`
+            ).join('\n')
+            navigator.clipboard?.writeText(text || '').catch(() => {})
+          }}
+        >
+          📤 PARTAGER
+        </button>
+        <button
+          className="iconbtn"
+          style={{ background: 'var(--ink)', color: 'var(--bg)' }}
+          onClick={onLeave}
+          aria-label={t.newSession}
+        >
+          ✓ C'EST OK
         </button>
       </div>
     </div>
