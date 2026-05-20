@@ -89,7 +89,8 @@ export default function WaitingRoomScreen({
   }
 
   function copyCode() {
-    navigator.clipboard.writeText(sessionCode).then(() => {
+    const url = getSessionUrl(sessionCode)
+    navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
