@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getSession } from '../services/sessionService.js'
+import RestaurantMap from '../components/RestaurantMap.jsx'
 
 function RestaurantCard({ restaurant, isTopPick, t }) {
   const { name, cuisine, adresse, budget, note, pourquoi } = restaurant
@@ -104,6 +105,8 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
       {!hasAny && (
         <div className="waiting-banner"><p>{t.noResults}</p></div>
       )}
+
+      {results?.out?.length > 0 && <RestaurantMap restaurants={results.out} />}
 
       <ResultSection title={t.sectionOut} restaurants={results?.out} t={t} />
 

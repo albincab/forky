@@ -149,12 +149,14 @@ export async function getRecommendations({ participants, mode }) {
   const top = places.slice(0, Math.min(10, places.length))
   const picked = top.sort(() => Math.random() - 0.5).slice(0, 3)
 
-  return picked.map(({ tags }) => ({
+  return picked.map(({ tags, lat, lon }) => ({
     name:     tags.name,
     cuisine:  getCuisineLabel(tags.cuisine),
     adresse:  buildAddress(tags),
     budget:   null,
     note:     null,
     pourquoi: buildWhy(tags, topCuisines),
+    lat,
+    lon,
   }))
 }
