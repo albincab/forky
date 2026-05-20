@@ -4,7 +4,7 @@
   --ink:    #0A0A0A;
   --red:    #E63B1F;
   --yellow: #FFC844;
-  --mute:   #5C5749;
+  --mute:   #4A4035;
 
   /* Legacy aliases — kept so existing JSX doesn't break */
   --cream:  var(--bg);
@@ -75,7 +75,7 @@ body {
   flex-direction: column;
   flex: 1;
   padding: 14px 16px 18px;
-  gap: 12px;
+  gap: 16px;
   min-height: 0;
   overflow-y: auto;
 }
@@ -105,7 +105,7 @@ body {
 
 .eyebrow {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -129,7 +129,7 @@ p  { color: var(--mute); font-size: 0.9rem; }
 }
 .masthead span {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -137,7 +137,7 @@ p  { color: var(--mute); font-size: 0.9rem; }
   all: unset;
   box-sizing: border-box;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
@@ -247,10 +247,10 @@ p  { color: var(--mute); font-size: 0.9rem; }
   gap: 6px;
 }
 .input-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mute);
 }
@@ -400,12 +400,12 @@ p  { color: var(--mute); font-size: 0.9rem; }
 /* ─── Tags ────────────────────────────────────────────────────────────────── */
 .tag {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 11px;
+  padding: 2px 7px;
   border: 1px solid var(--ink);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   border-radius: 0;
   display: inline-flex;
   align-items: center;
@@ -568,7 +568,7 @@ p  { color: var(--mute); font-size: 0.9rem; }
 
 .resto-meta, .restaurant-meta {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 12px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -688,9 +688,9 @@ p  { color: var(--mute); font-size: 0.9rem; }
   line-height: 1;
 }
 .meal-desc {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  opacity: 0.7;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--mute);
   margin-top: 4px;
 }
 .meal-option.selected .meal-title { color: var(--bg); }
@@ -795,7 +795,7 @@ p  { color: var(--mute); font-size: 0.9rem; }
 }
 .menu-row .meta-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .menu-row .name  { font-weight: 700; font-size: 15px; }
-.menu-row .sub   { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--mute); }
+.menu-row .sub   { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: var(--mute); }
 .menu-row .code  {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
@@ -851,8 +851,8 @@ p  { color: var(--mute); font-size: 0.9rem; }
 
 /* ─── Waiting room ────────────────────────────────────────────────────────── */
 .prefs-counter {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
   font-weight: 600;
   color: var(--mute);
   text-align: right;
@@ -882,11 +882,11 @@ p  { color: var(--mute); font-size: 0.9rem; }
 .results-group-icon { font-size: 1.1rem; line-height: 1.4; flex-shrink: 0; }
 .results-group-label {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--mute);
   margin-bottom: 2px;
 }
@@ -938,14 +938,14 @@ p  { color: var(--mute); font-size: 0.9rem; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
   font-weight: 700;
   color: var(--success);
   border: 1.5px solid var(--success);
   padding: 4px 10px;
   width: fit-content;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 

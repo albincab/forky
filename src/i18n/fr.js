@@ -25,9 +25,9 @@ export default {
   namePlaceholder: 'Ex: Sophie',
   sessionType: 'Type de session',
   sessionPublic: 'Session publique',
-  sessionPublicDesc: 'Visible dans la liste des repas du jour — rejoignable sans code',
+  sessionPublicDesc: 'Rejoignable sans code',
   sessionPrivate: 'Session privée',
-  sessionPrivateDesc: "Accessible uniquement via le code partagé",
+  sessionPrivateDesc: 'Via code uniquement',
   createBtn: 'Lancer !',
 
   // Session join
@@ -53,9 +53,9 @@ export default {
 
   // Meal modes
   mealOut: 'Je sors manger',
-  mealOutDesc: 'Repas au restaurant avec le groupe',
+  mealOutDesc: 'Au restaurant avec le groupe',
   mealInPlace: 'Je reste sur place',
-  mealInPlaceDesc: 'Gamelle, bureau ou repas solo — pas besoin de chercher',
+  mealInPlaceDesc: 'Repas perso · sans recherche',
   inPlaceMsg: 'Super, bon appétit ! 🥡',
   inPlaceSkipMsg: "Pas de recherche pour vous — on vous tient au courant !",
 
@@ -70,7 +70,7 @@ export default {
 
   // Cuisines
   cuisineTitle: 'Vos envies ?',
-  cuisineSubtitle: 'Sélectionnez tout ce qui vous fait envie (plusieurs choix possibles)',
+  cuisineSubtitle: 'Plusieurs choix possibles',
   noCuisineSelected: 'Pas de préférence particulière',
 
   // Budget
@@ -85,12 +85,12 @@ export default {
   // Navigation
   back: 'Retour',
   next: 'Suivant',
-  finish: 'Confirmer mes préférences',
+  finish: 'Confirmer',
 
   // Waiting room
   waitingRoomTitle: 'Salle d\'attente',
   waitingEmpty: 'C\'est calme… partage le code !',
-  waitingParticipant: '{name} décide quand tout le monde est là',
+  waitingParticipant: '{name} lance la recherche',
   waitingYourPrefs: 'En attente du lancement…',
   groupSummary: '{out} qui sortent · {inplace} sur place',
   launchSearchOut: '🍽️ Trouver un restaurant',

@@ -116,13 +116,13 @@ export default function CreateScreen({ t, onBack, onCreated }) {
                   {o.badge && (
                     <span style={{
                       fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 700,
-                      letterSpacing: '0.1em',
+                      letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       background: 'var(--ink)',
                       color: 'var(--yellow)',
-                      padding: '2px 6px',
+                      padding: '2px 7px',
                     }}>
                       {o.badge}
                     </span>

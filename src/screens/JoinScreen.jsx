@@ -152,9 +152,9 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
                   {o.title}
                 </div>
                 <div style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
-                  opacity: 0.7,
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 12,
+                  color: 'var(--mute)',
                   marginTop: 4,
                 }}>
                   {o.desc}

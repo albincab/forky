@@ -106,7 +106,7 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
         justifyContent: 'space-between',
       }}>
         <span>POUR {totalCount} GOURMAND{totalCount > 1 ? 'S' : ''}</span>
-        <span>ST-ÉTIENNE · 12H30</span>
+        <span>SAINT-ÉTIENNE</span>
       </div>
 
       {/* Group summary */}

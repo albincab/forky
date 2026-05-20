@@ -143,10 +143,7 @@ export default function WaitingRoomScreen({
 
       {/* Code de session */}
       <div>
-        <div className="eyebrow" style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
-          <span>Code de session</span>
-          <span>à partager</span>
-        </div>
+        <div className="eyebrow" style={{ marginBottom: 6 }}>Code de session</div>
         <CodeStrip code={sessionCode} />
       </div>
 
