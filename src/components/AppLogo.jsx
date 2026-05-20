@@ -22,7 +22,6 @@ export default function AppLogo() {
         textTransform: 'uppercase',
         color: 'var(--yellow)',
       }}>
-        <span>★ depuis 2025</span>
         <span>st-étienne (42)</span>
       </div>
 
