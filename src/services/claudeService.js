@@ -5,8 +5,9 @@ const OVERPASS_ENDPOINTS = [
   'https://overpass.openstreetmap.fr/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
 ]
-const SAINT_ETIENNE = { lat: 45.4397, lon: 4.3872 }
-const SEARCH_RADIUS = 2500 // metres
+// Fallback: Rue Édouard Martel, Saint-Étienne (42100)
+const FALLBACK_LOCATION = { lat: 45.4165, lon: 4.3808 }
+const SEARCH_RADIUS = 1500 // metres
 
 // Map French cuisine names to OSM cuisine tag values (regex-compatible)
 const CUISINE_OSM_TAGS = {
@@ -69,16 +70,28 @@ function buildWhy(tags, topCuisines) {
   return parts.join(' · ') || 'Sélectionné parmi les restaurants du quartier'
 }
 
-function buildQuery(cuisineTags, mode) {
+function buildQuery(cuisineTags, mode, location) {
   const cuisineFilter = cuisineTags ? `["cuisine"~"${cuisineTags}",i]` : ''
   const takeoutFilter = mode === 'takeout' ? '["takeaway"~"yes|only"]' : ''
-  const { lat, lon } = SAINT_ETIENNE
+  const { lat, lon } = location
   return `[out:json][timeout:25];
 (
   node["amenity"="restaurant"]${cuisineFilter}${takeoutFilter}(around:${SEARCH_RADIUS},${lat},${lon});
   way["amenity"="restaurant"]${cuisineFilter}${takeoutFilter}(around:${SEARCH_RADIUS},${lat},${lon});
 );
 out body center;`
+}
+
+/** Requests browser geolocation — resolves to {lat,lon} or fallback coords */
+function getLocation() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) return resolve(FALLBACK_LOCATION)
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      ()  => resolve(FALLBACK_LOCATION),
+      { timeout: 5000, maximumAge: 60000 }
+    )
+  })
 }
 
 async function queryOverpass(query) {
@@ -118,26 +131,26 @@ function scoreElement({ tags }) {
  */
 export async function getRecommendations({ participants, mode }) {
   const topCuisines = getTopCuisines(participants)
+  const location    = await getLocation()
 
   let places = []
 
   // 1. Try with cuisine filter for top voted preference
   if (topCuisines.length > 0) {
     const tags = CUISINE_OSM_TAGS[topCuisines[0]]
-    places = await queryOverpass(buildQuery(tags, mode))
+    places = await queryOverpass(buildQuery(tags, mode, location))
   }
 
   // 2. Fall back: no cuisine filter (keep mode filter)
   if (places.length < 3) {
-    const broader = await queryOverpass(buildQuery(null, mode))
-    // Merge without duplicates
+    const broader = await queryOverpass(buildQuery(null, mode, location))
     const seen = new Set(places.map(p => p.tags.name))
     places = [...places, ...broader.filter(p => !seen.has(p.tags.name))]
   }
 
   // 3. Fall back: no cuisine, no mode filter
   if (places.length < 3) {
-    const all = await queryOverpass(buildQuery(null, null))
+    const all = await queryOverpass(buildQuery(null, null, location))
     const seen = new Set(places.map(p => p.tags.name))
     places = [...places, ...all.filter(p => !seen.has(p.tags.name))]
   }
