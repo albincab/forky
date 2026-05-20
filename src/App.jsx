@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { detectLang, getTranslations } from './i18n/index.js'
-import { getSession, addToHistory } from './services/sessionService.js'
+import { getSession, addToHistory, resetResults } from './services/sessionService.js'
 import HomeScreen from './screens/HomeScreen.jsx'
 import CreateScreen from './screens/CreateScreen.jsx'
 import JoinScreen from './screens/JoinScreen.jsx'
@@ -227,7 +227,11 @@ export default function App() {
           t={t}
           sessionCode={sessionCode}
           onLeave={handleLeave}
-          onBackToWaiting={() => { setCameFromResults(true); setScreen('waiting') }}
+          onBackToWaiting={async () => {
+            if (isOrganizer) await resetResults({ code: sessionCode }).catch(() => {})
+            setCameFromResults(true)
+            setScreen('waiting')
+          }}
         />
       )}
     </div>

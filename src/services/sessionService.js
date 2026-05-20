@@ -188,6 +188,21 @@ export async function setResults({ code, mode, results }) {
 }
 
 /**
+ * Clears results and resets search flags so the organizer can re-run a search.
+ */
+export async function resetResults({ code }) {
+  const { error } = await supabase.from('sessions').update({
+    result_out:       null,
+    result_takeout:   null,
+    searching_out:    false,
+    searched_out:     false,
+    searching_takeout: false,
+    searched_takeout:  false,
+  }).eq('code', code)
+  if (error) throw new Error(error.message)
+}
+
+/**
  * Returns all public sessions created today.
  */
 export async function getPublicSessions() {
