@@ -3,7 +3,7 @@ import { createSession } from '../services/sessionService.js'
 
 export default function CreateScreen({ t, onBack, onCreated }) {
   const [name,    setName]    = useState('')
-  const [type,    setType]    = useState('public')
+  const [type,    setType]    = useState('private')
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -72,25 +72,24 @@ export default function CreateScreen({ t, onBack, onCreated }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             {
-              key: 'public',
-              emoji: '🌐',
-              title: t.sessionPublic,
-              desc: t.sessionPublicDesc,
-              badge: '★ RECOMMANDÉ',
-            },
-            {
               key: 'private',
               emoji: '🔒',
               title: t.sessionPrivate,
               desc: t.sessionPrivateDesc,
               badge: null,
             },
+            {
+              key: 'public',
+              emoji: '🌐',
+              title: t.sessionPublic,
+              desc: t.sessionPublicDesc,
+              badge: '★ OUVERT',
+            },
           ].map(o => (
             <button
               key={o.key}
               type="button"
               style={{
-                position: 'relative',
                 border: '1.5px solid var(--ink)',
                 background: type === o.key ? 'var(--yellow)' : 'var(--bg)',
                 padding: '14px 16px',
@@ -109,26 +108,26 @@ export default function CreateScreen({ t, onBack, onCreated }) {
             >
               <div style={{ fontSize: 30, lineHeight: 1 }}>{o.emoji}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22, textTransform: 'uppercase', lineHeight: 1 }}>
-                    {o.title}
+                <span style={{ fontFamily: "'Boldonse', serif", fontSize: 20, textTransform: 'uppercase', lineHeight: 1.1, display: 'block' }}>
+                  {o.title}
+                </span>
+                {o.badge && (
+                  <span style={{
+                    display: 'inline-block',
+                    marginTop: 4,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    background: 'var(--ink)',
+                    color: 'var(--yellow)',
+                    padding: '2px 7px',
+                  }}>
+                    {o.badge}
                   </span>
-                  {o.badge && (
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      background: 'var(--ink)',
-                      color: 'var(--yellow)',
-                      padding: '2px 7px',
-                    }}>
-                      {o.badge}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--mute)', marginTop: 4, lineHeight: 1.35 }}>
+                )}
+                <div style={{ fontSize: 12, color: 'var(--mute)', marginTop: 5, lineHeight: 1.4 }}>
                   {o.desc}
                 </div>
               </div>

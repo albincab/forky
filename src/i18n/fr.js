@@ -25,9 +25,9 @@ export default {
   namePlaceholder: 'Ex: Sophie',
   sessionType: 'Type de session',
   sessionPublic: 'Session publique',
-  sessionPublicDesc: 'Rejoignable sans code',
+  sessionPublicDesc: 'Ouvert à tous — tout le monde peut rejoindre sans code',
   sessionPrivate: 'Session privée',
-  sessionPrivateDesc: 'Via code uniquement',
+  sessionPrivateDesc: 'Petit comité — accès réservé aux personnes qui ont le code',
   createBtn: 'Lancer !',
 
   // Session join
