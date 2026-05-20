@@ -161,10 +161,8 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
         <button
           className="iconbtn"
           onClick={() => {
-            const text = results?.out?.map(
-              (r, i) => `${i + 1}. ${r.name} — ${r.cuisine} · ${r.budget} · ${r.adresse || ''}`
-            ).join('\n')
-            navigator.clipboard?.writeText(text || '').catch(() => {})
+            const url = `${window.location.origin}${window.location.pathname}?code=${sessionCode}`
+            navigator.clipboard?.writeText(url).catch(() => {})
           }}
         >
           📤 PARTAGER
