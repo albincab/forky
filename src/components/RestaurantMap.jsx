@@ -64,11 +64,22 @@ export default function RestaurantMap({ restaurants }) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (pins.length === 0) return null
+  if (pins.length === 0) return (
+    <div style={{
+      border: '1.5px solid var(--ink)',
+      background: 'var(--bg)',
+      padding: '12px 14px',
+      fontFamily: "'JetBrains Mono', monospace",
+      fontSize: 11,
+      color: 'var(--mute)',
+    }}>
+      📍 Carte indisponible — relance une recherche via le bouton 🔄
+    </div>
+  )
 
   return (
-    <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
-      <div ref={containerRef} style={{ height: 220 }} />
+    <div style={{ border: '1.5px solid var(--ink)', overflow: 'hidden' }}>
+      <div ref={containerRef} style={{ height: 240, width: '100%' }} />
     </div>
   )
 }

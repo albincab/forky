@@ -1005,6 +1005,15 @@ p  { color: var(--mute); font-size: 0.9rem; }
 .text-muted  { color: var(--mute); }
 .font-mono   { font-family: 'JetBrains Mono', monospace; }
 
+/* ─── Leaflet overrides (prevent CSS reset from collapsing map) ───────────── */
+.leaflet-container {
+  height: 100% !important;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.leaflet-control-attribution {
+  font-size: 10px !important;
+}
+
 /* ─── Mobile safe area ────────────────────────────────────────────────────── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .screen { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
