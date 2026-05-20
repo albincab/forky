@@ -21,7 +21,9 @@ export default function App() {
   const [isOrganizer,   setIsOrganizer]   = useState(false)
   const [prefilledCode, setPrefilledCode] = useState(null)
   // Where to go after completing/editing preferences: 'waiting' | 'mylunches'
-  const [afterPrefs,    setAfterPrefs]    = useState('waiting')
+  const [afterPrefs,       setAfterPrefs]       = useState('waiting')
+  // Prevents auto-redirect to results when user explicitly navigates back from results screen
+  const [cameFromResults,  setCameFromResults]  = useState(false)
 
   // ─── Init: resolve screen from localStorage + Supabase ─────────────────────
   // localStorage (not sessionStorage) → persists after closing the browser tab
@@ -204,9 +206,10 @@ export default function App() {
           sessionCode={sessionCode}
           userId={userId}
           isOrganizer={isOrganizer}
+          autoRedirect={!cameFromResults}
           onLeave={handleLeave}
           onEditPrefs={() => setScreen('preferences')}
-          onResultsReady={() => setScreen('results')}
+          onResultsReady={() => { setCameFromResults(false); setScreen('results') }}
         />
       )}
 
@@ -224,7 +227,7 @@ export default function App() {
           t={t}
           sessionCode={sessionCode}
           onLeave={handleLeave}
-          onBackToWaiting={() => setScreen('waiting')}
+          onBackToWaiting={() => { setCameFromResults(true); setScreen('waiting') }}
         />
       )}
     </div>

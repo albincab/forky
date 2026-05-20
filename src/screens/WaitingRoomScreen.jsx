@@ -79,7 +79,7 @@ function GroupSummary({ participants, t }) {
 
 // ─── Main WaitingRoomScreen ───────────────────────────────────────────────────
 export default function WaitingRoomScreen({
-  t, lang, sessionCode, userId, isOrganizer, onLeave, onEditPrefs, onResultsReady,
+  t, lang, sessionCode, userId, isOrganizer, autoRedirect = true, onLeave, onEditPrefs, onResultsReady,
 }) {
   const [session,    setSession]    = useState(null)
   const [loadingOut, setLoadingOut] = useState(false)
@@ -92,9 +92,9 @@ export default function WaitingRoomScreen({
     setSession(s)
     if (s.results?.out?.length > 0) {
       document.title = '🎉 Résultats disponibles — À TABLE!'
-      if (!isOrganizer) onResultsReady()
+      if (!isOrganizer && autoRedirect) onResultsReady()
     }
-  }, [sessionCode, isOrganizer, onResultsReady])
+  }, [sessionCode, isOrganizer, autoRedirect, onResultsReady])
 
   useEffect(() => {
     return () => { document.title = 'À TABLE!' }
