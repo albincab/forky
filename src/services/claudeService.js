@@ -2,8 +2,8 @@
 
 // kumi.systems is the primary mirror — overpass-api.de used as fallback
 const OVERPASS_ENDPOINTS = [
+  'https://overpass.openstreetmap.fr/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
 ]
 const SAINT_ETIENNE = { lat: 45.4397, lon: 4.3872 }
 const SEARCH_RADIUS = 2500 // metres
