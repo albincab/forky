@@ -1,54 +1,33 @@
-// Google Places API (New) — real restaurant search for Saint-Étienne
+// Restaurant search via OpenStreetMap Overpass API — free, no API key required
 
-const PLACES_URL = 'https://places.googleapis.com/v1/places:searchText'
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
+const SAINT_ETIENNE = { lat: 45.4397, lon: 4.3872 }
+const SEARCH_RADIUS = 2500 // metres
 
-const SAINT_ETIENNE = { latitude: 45.4397, longitude: 4.3872 }
-const SEARCH_RADIUS_METERS = 2500
-
-const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
-
-const BUDGET_TO_PRICE_LEVELS = {
-  '<15':   ['PRICE_LEVEL_INEXPENSIVE'],
-  '15-30': ['PRICE_LEVEL_INEXPENSIVE', 'PRICE_LEVEL_MODERATE'],
-  '30-50': ['PRICE_LEVEL_MODERATE', 'PRICE_LEVEL_EXPENSIVE'],
-  '>50':   ['PRICE_LEVEL_EXPENSIVE', 'PRICE_LEVEL_VERY_EXPENSIVE'],
+// Map French cuisine names to OSM cuisine tag values (regex-compatible)
+const CUISINE_OSM_TAGS = {
+  'Française':    'french|brasserie|regional|traditional',
+  'Italienne':    'italian',
+  'Japonaise':    'japanese|sushi|ramen',
+  'Pizza':        'pizza',
+  'Burger':       'burger|american',
+  'Asiatique':    'asian|chinese|thai|vietnamese|korean',
+  'Végétarienne': 'vegetarian|vegan',
+  'Brasserie':    'brasserie|french|regional|traditional',
+  'Libanaise':    'lebanese|middle_eastern',
+  'Mexicaine':    'mexican',
 }
 
-const PRICE_LEVEL_LABELS = {
-  PRICE_LEVEL_FREE:           '< 5€',
-  PRICE_LEVEL_INEXPENSIVE:    '< 15€',
-  PRICE_LEVEL_MODERATE:       '15–30€',
-  PRICE_LEVEL_EXPENSIVE:      '30–50€',
-  PRICE_LEVEL_VERY_EXPENSIVE: '> 50€',
-}
-
-const CUISINE_KEYWORDS = {
-  'Française':    'cuisine française',
-  'Italienne':    'restaurant italien',
-  'Japonaise':    'restaurant japonais sushi',
-  'Pizza':        'pizzeria',
-  'Burger':       'burger',
-  'Asiatique':    'restaurant asiatique',
-  'Végétarienne': 'restaurant végétarien',
-  'Brasserie':    'brasserie bistrot',
-  'Libanaise':    'restaurant libanais',
-  'Mexicaine':    'restaurant mexicain',
-}
-
-const FIELD_MASK = [
-  'places.displayName',
-  'places.formattedAddress',
-  'places.rating',
-  'places.priceLevel',
-  'places.primaryTypeDisplayName',
-  'places.editorialSummary',
-].join(',')
-
-function getMostRestrictiveBudget(participants) {
-  const budgets = participants.map(p => p.budget).filter(Boolean)
-  if (budgets.length === 0) return '15-30'
-  const minIdx = Math.min(...budgets.map(b => BUDGET_ORDER.indexOf(b)).filter(i => i >= 0))
-  return BUDGET_ORDER[Math.max(0, minIdx)]
+const OSM_CUISINE_TO_LABEL = {
+  french: 'Française', brasserie: 'Brasserie', regional: 'Régionale',
+  traditional: 'Traditionnelle', italian: 'Italienne', pizza: 'Pizza',
+  japanese: 'Japonaise', sushi: 'Japonaise', ramen: 'Japonaise',
+  burger: 'Burger', american: 'Américaine',
+  asian: 'Asiatique', chinese: 'Chinoise', thai: 'Thaïlandaise',
+  vietnamese: 'Vietnamienne', korean: 'Coréenne',
+  vegetarian: 'Végétarienne', vegan: 'Végétalienne',
+  lebanese: 'Libanaise', middle_eastern: 'Orientale',
+  mexican: 'Mexicaine',
 }
 
 function getTopCuisines(participants) {
@@ -57,79 +36,113 @@ function getTopCuisines(participants) {
   return Object.entries(votes).sort((a, b) => b[1] - a[1]).map(([c]) => c)
 }
 
-function buildWhy(place, topCuisines) {
-  if (place.editorialSummary?.text) return place.editorialSummary.text
-  const parts = []
-  if (place.rating >= 4.5) parts.push('Très bien noté')
-  else if (place.rating >= 4.0) parts.push('Bien noté dans le quartier')
-  if (topCuisines.length > 0) parts.push('Correspond aux envies du groupe')
-  return parts.join(' · ') || 'Sélectionné pour ce midi à Saint-Étienne'
+function buildAddress(tags) {
+  const num    = tags['addr:housenumber'] || ''
+  const street = tags['addr:street'] || ''
+  const area   = tags['addr:quarter'] || tags['addr:suburb'] || ''
+  const line1  = num && street ? `${num} ${street}` : street
+  return [line1, area].filter(Boolean).join(', ')
 }
 
-async function searchPlaces(apiKey, textQuery, priceLevels) {
-  const body = {
-    textQuery,
-    includedType: 'restaurant',
-    locationBias: {
-      circle: { center: SAINT_ETIENNE, radius: SEARCH_RADIUS_METERS },
-    },
-    maxResultCount: 5,
-  }
-  if (priceLevels) body.priceLevels = priceLevels
+function getCuisineLabel(osmCuisine) {
+  if (!osmCuisine) return 'Restaurant'
+  const first = osmCuisine.split(/[;,]/)[0].trim().toLowerCase()
+  return OSM_CUISINE_TO_LABEL[first] || osmCuisine.split(/[;,]/)[0].trim()
+}
 
-  const response = await fetch(PLACES_URL, {
+function buildWhy(tags, topCuisines) {
+  const parts = []
+  if (topCuisines.length > 0 && tags.cuisine) {
+    const osmTag = tags.cuisine.toLowerCase()
+    const matched = topCuisines.some(c => {
+      const pattern = CUISINE_OSM_TAGS[c] || ''
+      return pattern.split('|').some(t => osmTag.includes(t))
+    })
+    if (matched) parts.push('Correspond aux envies du groupe')
+  }
+  if (tags.opening_hours) parts.push('Horaires renseignés')
+  if (tags.website || tags.contact?.website) parts.push('Site web disponible')
+  return parts.join(' · ') || 'Sélectionné parmi les restaurants du quartier'
+}
+
+function buildQuery(cuisineTags, mode) {
+  const cuisineFilter = cuisineTags ? `["cuisine"~"${cuisineTags}",i]` : ''
+  const takeoutFilter = mode === 'takeout' ? '["takeaway"~"yes|only"]' : ''
+  const { lat, lon } = SAINT_ETIENNE
+  return `[out:json][timeout:25];
+(
+  node["amenity"="restaurant"]${cuisineFilter}${takeoutFilter}(around:${SEARCH_RADIUS},${lat},${lon});
+  way["amenity"="restaurant"]${cuisineFilter}${takeoutFilter}(around:${SEARCH_RADIUS},${lat},${lon});
+);
+out body center;`
+}
+
+async function queryOverpass(query) {
+  const response = await fetch(OVERPASS_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': FIELD_MASK,
-    },
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `data=${encodeURIComponent(query)}`,
   })
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}))
-    throw new Error(err.error?.message || `HTTP ${response.status}`)
-  }
-
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
   const data = await response.json()
-  return data.places || []
+  // Keep only elements that have a name tag; normalise way centres
+  return (data.elements || [])
+    .filter(el => el.tags?.name)
+    .map(el => ({ tags: el.tags, lat: el.center?.lat ?? el.lat, lon: el.center?.lon ?? el.lon }))
+}
+
+// Prefer entries with more OSM tags (richer data = more active listing)
+function scoreElement({ tags }) {
+  return Object.keys(tags).length
 }
 
 /**
- * Fetches real restaurant recommendations from Google Places API (New).
- * Falls back to a broader search if price filter returns no results.
+ * Returns up to 3 real restaurants from OpenStreetMap for the given participants and mode.
+ * Tries to match the group's top cuisine first, falls back to any restaurant nearby.
+ * No API key required — completely free.
  *
  * @param {{ participants: Array, mode: 'out'|'takeout' }}
- * @returns {Promise<Array>} Array of restaurant objects
+ * @returns {Promise<Array>}
  */
 export async function getRecommendations({ participants, mode }) {
-  const apiKey = import.meta.env.VITE_GOOGLE_PLACES_KEY
-  if (!apiKey) throw new Error('GOOGLE_PLACES_KEY_MISSING')
-
   const topCuisines = getTopCuisines(participants)
-  const budgetKey   = getMostRestrictiveBudget(participants)
-  const priceLevels = BUDGET_TO_PRICE_LEVELS[budgetKey]
 
-  const cuisineKw = topCuisines.length > 0
-    ? (CUISINE_KEYWORDS[topCuisines[0]] || topCuisines[0])
-    : 'restaurant'
-  const modeKw  = mode === 'takeout' ? 'livraison à emporter' : 'déjeuner midi'
-  const textQuery = `${cuisineKw} ${modeKw} Saint-Étienne`
+  let places = []
 
-  // Try with price filter first, fall back to no filter if empty
-  let places = await searchPlaces(apiKey, textQuery, priceLevels)
-  if (places.length === 0) {
-    places = await searchPlaces(apiKey, textQuery, null)
+  // 1. Try with cuisine filter for top voted preference
+  if (topCuisines.length > 0) {
+    const tags = CUISINE_OSM_TAGS[topCuisines[0]]
+    places = await queryOverpass(buildQuery(tags, mode))
   }
+
+  // 2. Fall back: no cuisine filter (keep mode filter)
+  if (places.length < 3) {
+    const broader = await queryOverpass(buildQuery(null, mode))
+    // Merge without duplicates
+    const seen = new Set(places.map(p => p.tags.name))
+    places = [...places, ...broader.filter(p => !seen.has(p.tags.name))]
+  }
+
+  // 3. Fall back: no cuisine, no mode filter
+  if (places.length < 3) {
+    const all = await queryOverpass(buildQuery(null, null))
+    const seen = new Set(places.map(p => p.tags.name))
+    places = [...places, ...all.filter(p => !seen.has(p.tags.name))]
+  }
+
   if (places.length === 0) throw new Error('EMPTY_RESULTS')
 
-  return places.slice(0, 3).map(p => ({
-    name:     p.displayName?.text || 'Restaurant',
-    cuisine:  p.primaryTypeDisplayName?.text || topCuisines[0] || 'Restaurant',
-    adresse:  p.formattedAddress || '',
-    budget:   PRICE_LEVEL_LABELS[p.priceLevel] || '',
-    note:     p.rating ? `${p.rating}/5` : null,
-    pourquoi: buildWhy(p, topCuisines),
+  // Sort by richness of OSM data, then pick 3 with slight shuffle for variety
+  places.sort((a, b) => scoreElement(b) - scoreElement(a))
+  const top = places.slice(0, Math.min(10, places.length))
+  const picked = top.sort(() => Math.random() - 0.5).slice(0, 3)
+
+  return picked.map(({ tags }) => ({
+    name:     tags.name,
+    cuisine:  getCuisineLabel(tags.cuisine),
+    adresse:  buildAddress(tags),
+    budget:   null,
+    note:     null,
+    pourquoi: buildWhy(tags, topCuisines),
   }))
 }
