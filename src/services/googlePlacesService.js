@@ -1,6 +1,9 @@
 // Google Places API (New) — alternative to Overpass/OSM
 // Requires VITE_GOOGLE_PLACES_KEY in .env (Google Cloud Console, billing account needed)
 //
+// Fallback option if Overpass mirrors keep timing out (e.g. blocked by a corporate
+// network/proxy) despite the client-side timeout in claudeService.js.
+//
 // To activate: in WaitingRoomScreen.jsx replace
 //   import { getRecommendations } from '../services/claudeService.js'
 // with:

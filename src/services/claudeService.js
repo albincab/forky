@@ -9,6 +9,9 @@ const OVERPASS_ENDPOINTS = [
 const FALLBACK_LOCATION = { lat: 45.4165, lon: 4.3808 }
 const SEARCH_RADIUS = 1500 // metres
 
+const OVERPASS_TIMEOUT_MS = 8000
+const RECOMMENDATIONS_TIMEOUT_MS = 20000
+
 // Map French cuisine names to OSM cuisine tag values (regex-compatible)
 const CUISINE_OSM_TAGS = {
   'Française':    'french|brasserie|regional|traditional',
@@ -97,11 +100,14 @@ function getLocation() {
 async function queryOverpass(query) {
   let lastError
   for (const url of OVERPASS_ENDPOINTS) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS)
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `data=${encodeURIComponent(query)}`,
+        signal: controller.signal,
       })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
@@ -109,8 +115,11 @@ async function queryOverpass(query) {
         .filter(el => el.tags?.name)
         .map(el => ({ tags: el.tags, lat: el.center?.lat ?? el.lat, lon: el.center?.lon ?? el.lon }))
     } catch (err) {
-      console.warn(`Overpass ${url} failed:`, err.message)
+      const reason = err.name === 'AbortError' ? `timeout after ${OVERPASS_TIMEOUT_MS}ms` : err.message
+      console.warn(`Overpass ${url} failed:`, reason)
       lastError = err
+    } finally {
+      clearTimeout(timer)
     }
   }
   throw lastError
@@ -129,7 +138,16 @@ function scoreElement({ tags }) {
  * @param {{ participants: Array, mode: 'out'|'takeout' }}
  * @returns {Promise<Array>}
  */
-export async function getRecommendations({ participants, mode }) {
+export async function getRecommendations(params) {
+  return Promise.race([
+    getRecommendationsInner(params),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('RECOMMENDATIONS_TIMEOUT')), RECOMMENDATIONS_TIMEOUT_MS)
+    ),
+  ])
+}
+
+async function getRecommendationsInner({ participants, mode }) {
   const topCuisines = getTopCuisines(participants)
   const location    = await getLocation()
 
