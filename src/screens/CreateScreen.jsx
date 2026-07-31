@@ -30,7 +30,7 @@ export default function CreateScreen({ t, onBack, onCreated }) {
       {/* Masthead */}
       <div className="masthead">
         <button onClick={onBack} aria-label={t.back}>← RETOUR</button>
-        <span>★ NOUVELLE SESSION</span>
+        <span>★ NOUVELLE TABLE</span>
         <span>01 / 02</span>
       </div>
 
@@ -38,8 +38,8 @@ export default function CreateScreen({ t, onBack, onCreated }) {
       <div>
         <div className="eyebrow">— étape 01 —</div>
         <div className="display" style={{ fontSize: 42, marginTop: 6 }}>
-          <span>Je lance le</span>
-          <span style={{ lineHeight: '1' }}>Déjeuner.</span>
+          <span>Je mets</span>
+          <span style={{ lineHeight: '1' }}>La table.</span>
         </div>
       </div>
 

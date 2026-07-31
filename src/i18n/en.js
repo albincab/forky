@@ -1,48 +1,47 @@
 // English translations
 export default {
   // Home
-  tagline: 'No more 20-minute "where should we eat?" debates.',
-  ctaCreate: 'Start a lunch',
-  ctaJoin: 'I got the code',
-  publicSessionsTitle: "Today's lunches",
-  publicSessionsSubtitle: 'Public sessions started by others — join without a code',
-  publicSessionsEmpty: 'No lunches in progress. Start yours!',
-  myLunches: 'My lunches',
-  myLunchesEmpty: "You haven't joined any lunch yet.",
-  myLunchesTitle: 'My lunches',
-  myLunchesSubtitle: 'Your lunches, created or joined, on this device',
+  taglineBadge: "Who's eating where?",
+  ctaCreate: 'Set the table',
+  ctaJoin: 'I have the table number',
+  publicSessionsTab: 'The buffets',
+  publicSessionsSubtitle: 'Open tables started by others — join without a number',
+  publicSessionsEmpty: 'No open tables yet. Start yours!',
+  myLunches: 'My tables',
+  myLunchesEmpty: "You haven't joined any table yet.",
+  showArchived: 'Show archived tables',
   feedbackLink: 'Feedback',
-  rejoin: 'Rejoin',
-  cancelParticipation: 'Cancel my participation',
-  cancelConfirm: 'Cancel your participation in this lunch?',
+  rejoin: 'View my table',
+  cancelParticipation: "I'm out",
+  cancelConfirm: 'Drop out of this table?',
   statusWaiting: 'Waiting',
-  statusResults: '🎉 Results ready',
-  statusDone: 'Done',
+  statusResults: "🍽️ Table's ready!",
+  statusArchived: '🧹 Table cleared',
   statusPrefsNeeded: 'Preferences needed',
   youAreOrganizer: 'You are the organizer',
-  loadingMyLunches: 'Loading your lunches…',
+  loadingMyLunches: 'Loading your tables…',
 
   // Session creation
-  createTitle: 'Start a lunch',
+  createTitle: 'Open a table',
   yourName: 'Your first name',
   namePlaceholder: 'E.g. Sophie',
-  sessionType: 'Session type',
-  sessionPublic: 'Public session',
-  sessionPublicDesc: "Visible in today's lunch list — joinable without a code",
-  sessionPrivate: 'Private session',
-  sessionPrivateDesc: 'Accessible via shared code only',
-  createBtn: "Let's go!",
+  sessionType: 'Table type',
+  sessionPublic: 'Open to all',
+  sessionPublicDesc: 'Anyone can join without a number — shows up in The buffets',
+  sessionPrivate: 'Invite-only',
+  sessionPrivateDesc: 'Accessible via shared table number only',
+  createBtn: "Open the table",
 
   // Session join
-  joinTitle: 'Join a lunch',
-  sessionCode: 'Session code',
-  codePlaceholder: 'E.g. A3F2',
+  joinTitle: 'Join a table',
+  sessionCode: 'Table number',
+  codePlaceholder: 'E.g. 4827',
   joinBtn: 'Join',
 
   // Your code
-  yourCode: 'Session code',
-  codeHint: 'Share this code with your colleagues',
-  copyCode: 'Copy code',
+  yourCode: 'Table number',
+  codeHint: 'Share this number with your colleagues',
+  copyCode: 'Copy number',
   copied: 'Copied!',
   shareTeams: 'Share on Teams',
   copyLink: 'Copy link',
@@ -56,11 +55,11 @@ export default {
 
   // Meal modes
   mealOut: 'Going out',
-  mealOutDesc: 'Restaurant with the group',
+  mealOutDesc: 'Work, food, sleep, repeat — but never eating alone',
   mealInPlace: 'Staying in',
-  mealInPlaceDesc: 'Packed lunch, desk or solo — no search needed',
+  mealInPlaceDesc: 'Packed my own lunch',
   mealOutside: 'Eating on my own',
-  mealOutsideDesc: 'Not with the group · no search',
+  mealOutsideDesc: 'Sure, if you say so!',
   inPlaceMsg: 'Enjoy your lunch! 🥡',
   inPlaceSkipMsg: "No restaurant search for you — we'll keep you posted!",
 
@@ -70,8 +69,8 @@ export default {
   backBy14h: 'I need to be back before 2pm',
 
   // Delete session
-  deleteSession: 'Delete lunch',
-  deleteConfirm: 'Permanently delete this lunch? All participants will be removed.',
+  deleteSession: 'Close the table',
+  deleteConfirm: 'Permanently close this table? All participants will be removed.',
 
   // Cuisines
   cuisineTitle: 'What are you in the mood for?',
@@ -94,11 +93,11 @@ export default {
 
   // Waiting room
   waitingRoomTitle: 'Waiting room',
-  waitingEmpty: 'Quiet in here… share the code!',
+  waitingEmpty: 'Quiet in here… share the number!',
   waitingParticipant: "{name} will pick when everyone's in",
   waitingYourPrefs: 'Waiting for the organizer to launch…',
   groupSummary: '{out} going out · {inplace} staying in',
-  launchSearchOut: '🍽️ Find a restaurant',
+  launchSearchOut: '🍽️ Find our table',
   searching: 'Searching…',
   searchDone: 'Results ready!',
   viewResults: 'View results',
@@ -111,24 +110,24 @@ export default {
   aiPicked: 'Picked by AI based on your budget and allergies',
   noResults: 'No recommendations available.',
   retry: 'Retry',
-  newSession: 'New lunch',
+  newSession: 'New table',
   backToWaiting: 'Back to waiting room',
   editPrefs: 'Edit my preferences',
-  leaveSession: 'Leave session',
-  leaveConfirm: 'Are you sure you want to leave this session?',
+  leaveSession: 'Leave table',
+  leaveConfirm: 'Are you sure you want to leave this table?',
   budget: 'Budget',
   address: 'Address',
   why: 'Why?',
 
   // Share
-  teamsMsg: 'Lunch together? Join the À TABLE! session — Code: {code} → {url}',
+  teamsMsg: 'Lunch together? Join the À TABLE! table — Number: {code} → {url}',
   qrTitle: 'Scan to join',
 
   // Errors
   nameRequired: 'Please enter your first name.',
-  codeRequired: 'Please enter the session code.',
-  sessionNotFound: 'Session not found. Check the code.',
-  sessionClosed: 'This session is already closed.',
+  codeRequired: 'Please enter the table number.',
+  sessionNotFound: 'Table not found. Check the number.',
+  sessionClosed: 'This table is already closed.',
   apiKeyMissing: 'API key missing — add VITE_GOOGLE_PLACES_KEY to your .env file',
   claudeError: 'Search error. Please try again.',
   prefsError: 'Failed to save preferences. Please try again.',
@@ -145,14 +144,14 @@ export default {
   // Cuisine list
   cuisines: [
     'Française', 'Italienne', 'Japonaise', 'Pizza', 'Burger',
-    'Asiatique', 'Végétarienne', 'Brasserie', 'Libanaise', 'Mexicaine',
+    'Asiatique', 'Végétarienne', 'Brasserie', 'Libanaise', 'Mexicaine', 'Orientale',
   ],
 
   // Cuisine emojis
   cuisineEmojis: {
     Française: '🥐', Italienne: '🍝', Japonaise: '🍣', Pizza: '🍕',
     Burger: '🍔', Asiatique: '🥢', Végétarienne: '🥗', Brasserie: '🍺',
-    Libanaise: '🧆', Mexicaine: '🌮',
+    Libanaise: '🧆', Mexicaine: '🌮', Orientale: '🥙',
   },
 
   // Allergies
@@ -170,28 +169,29 @@ export default {
   // Guide screen
   guideLink: 'Guide',
   guideTitle: 'Guide',
-  guideIntro: 'No more 20-minute "where should we eat?" debates. Everyone shares what they want, the app suggests 3 restaurants that work for the group.',
+  guideIntro: "No more 20-minute \"who's eating where\" debates. Everyone shares what they want, the app suggests 3 restaurants that work for the group.",
   guideHowTitle: 'How it works',
   guideHowOrganizer: [
-    { title: 'Create a session', desc: 'public or private, get a 4-character code' },
-    { title: 'Share the code', desc: 'via Teams, QR code, or direct link' },
+    { title: 'Open a table', desc: 'open to all or invite-only, get a 4-digit number' },
+    { title: 'Share the number', desc: 'via Teams, QR code, or direct link' },
     { title: 'Watch the waiting room', desc: 'see who has filled in their preferences' },
     { title: 'Launch the search', desc: 'get 3 restaurants that fit the group' },
   ],
   guideHowParticipant: [
-    { title: 'Join', desc: 'with the code you received, or a public session shown on the home screen' },
+    { title: 'Join', desc: 'with the number you received, or an open table shown in The buffets' },
     { title: 'Share your preferences', desc: 'cuisine, budget, allergies — skipped if "eating in"' },
     { title: 'Wait', desc: 'the screen updates itself, nothing to refresh' },
     { title: 'Check the results', desc: '3 restaurants, with address' },
   ],
   guideFeaturesTitle: 'Key features',
   guideFeatures: [
-    { icon: '🔒', title: 'Public or private', desc: 'A private session is only visible with the code. A public session shows up on the home screen so anyone can join without one.' },
+    { icon: '🔒', title: 'Open or invite-only', desc: 'An invite-only table is only visible with the number. An open table shows up in The buffets so anyone can join without one.' },
     { icon: '🍽️', title: 'Three meal modes', desc: 'Eating out, staying in, or eating on your own — everyone picks, only "eating out" joins the search.' },
     { icon: '⚠️', title: 'Allergies always respected', desc: 'Every suggested restaurant accounts for the allergies declared by the participants concerned.' },
     { icon: '💶', title: 'Most restrictive budget wins', desc: 'If the group has different budgets, the app keeps the lowest one so everyone is comfortable.' },
-    { icon: '📋', title: 'My lunches', desc: 'Your personal history of sessions created or joined on this device.' },
-    { icon: '🌍', title: "Today's lunches", desc: 'Public sessions started by others right now — join one without a code.' },
+    { icon: '📋', title: 'My tables', desc: 'Your personal history of tables created or joined on this device. Tables from another day are automatically archived — a checkbox lets you show them again.' },
+    { icon: '🌍', title: 'The buffets', desc: 'Open tables started by others right now — join one without a number.' },
+    { icon: '🪑', title: 'One active table per day', desc: 'Once you already have a table today, the home screen shows "View my table" instead of "Set the table" / "I have the table number".' },
   ],
   guideLimitsTitle: 'API limitations',
   guideLimitsIntro: 'The app is deliberately built for €0: no API key, no credit card, no infrastructure to pay for. That choice has trade-offs, acknowledged here and partly mitigated.',
@@ -216,7 +216,7 @@ export default {
     {
       severity: '🟢',
       title: 'No account, data tied to the device',
-      desc: '"My lunches" reads history stored in this browser. Switching devices loses that history — but a session code still works to join from anywhere.',
+      desc: '"My tables" reads history stored in this browser. Switching devices loses that history — but a table number still works to join from anywhere.',
     },
     {
       severity: '🟢',
@@ -227,15 +227,16 @@ export default {
   guideFaqTitle: 'FAQ',
   guideFaq: [
     { q: 'The search shows an error, what should I do?', a: 'Just relaunch the search — the data service is free and occasionally overloaded. Once a search has succeeded in your area, later ones are near-instant for 7 days.' },
-    { q: 'Can I change my preferences after submitting them?', a: 'Yes, as long as the organizer hasn\'t launched the search yet — via "My lunches" or directly in the waiting room.' },
-    { q: 'Who can see a private session?', a: 'Only people who received the 4-character code. It never shows up in "Today\'s lunches".' },
-    { q: 'Are sessions deleted automatically?', a: 'Public sessions are cleaned up after 24h. Private sessions stay until the organizer deletes them manually.' },
+    { q: 'Can I change my preferences after submitting them?', a: 'Yes, as long as the organizer hasn\'t launched the search yet — via "My tables" or directly in the waiting room.' },
+    { q: 'Who can see an invite-only table?', a: 'Only people who received the 4-digit number. It never shows up in "The buffets".' },
+    { q: 'Are tables deleted automatically?', a: 'No — the data stays in the database indefinitely. A table from another day just disappears from view: hidden (archived) in "My tables", and removed from "The buffets" if it was open. Only "Close the table" (organizer) actually deletes one.' },
+    { q: 'Can I open a second table the same day?', a: 'The home screen nudges you toward one active table per day and shows "View my table" once you have one. You can still join another with its number or from "The buffets" if needed.' },
   ],
   guideRoadmapTitle: 'Not yet planned',
   guideRoadmap: [
     'Authentication / user accounts',
     'Push notifications',
-    'Session history beyond the current device',
+    'Table history beyond the current device',
     'Veto voting on suggested restaurants',
     'Calendar integration',
   ],

@@ -139,18 +139,14 @@ describe('generateCode', () => {
     expect(generateCode()).toHaveLength(4)
   })
 
-  it('uses only allowed characters', () => {
-    for (let i = 0; i < 50; i++) expect(generateCode()).toMatch(/^[A-Z2-9]{4}$/)
-  })
-
-  it('never contains ambiguous characters (0 O I 1 l)', () => {
-    for (let i = 0; i < 100; i++) expect(generateCode()).not.toMatch(/[0OI1l]/)
+  it('uses only digits', () => {
+    for (let i = 0; i < 50; i++) expect(generateCode()).toMatch(/^[0-9]{4}$/)
   })
 
   it('generates reasonably unique codes', () => {
     const codes  = Array.from({ length: 200 }, generateCode)
     const unique = new Set(codes)
-    expect(unique.size).toBeGreaterThan(190)
+    expect(unique.size).toBeGreaterThan(150)
   })
 })
 

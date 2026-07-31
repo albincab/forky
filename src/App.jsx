@@ -7,7 +7,6 @@ import JoinScreen from './screens/JoinScreen.jsx'
 import PreferencesScreen from './screens/PreferencesScreen.jsx'
 import WaitingRoomScreen from './screens/WaitingRoomScreen.jsx'
 import ResultsScreen from './screens/ResultsScreen.jsx'
-import MyLunchesScreen from './screens/MyLunchesScreen.jsx'
 import GuideScreen from './screens/GuideScreen.jsx'
 import FeedbackScreen from './screens/FeedbackScreen.jsx'
 
@@ -22,7 +21,7 @@ export default function App() {
   const [userId,        setUserId]        = useState(null)
   const [isOrganizer,   setIsOrganizer]   = useState(false)
   const [prefilledCode, setPrefilledCode] = useState(null)
-  // Where to go after completing/editing preferences: 'waiting' | 'mylunches'
+  // Where to go after completing/editing preferences: 'waiting' | 'home'
   const [afterPrefs,       setAfterPrefs]       = useState('waiting')
   // Prevents auto-redirect to results when user explicitly navigates back from results screen
   const [cameFromResults,  setCameFromResults]  = useState(false)
@@ -129,7 +128,7 @@ export default function App() {
     setScreen('home')
   }
 
-  // Rejoin a session from MyLunches (switch active session)
+  // Rejoin a session from the "Mes déjeuners" tab (switch active session)
   async function handleRejoinFromHistory(entry) {
     persistIdentity({
       code:      entry.session.code,
@@ -140,14 +139,14 @@ export default function App() {
     setScreen(hasResults ? 'results' : 'waiting')
   }
 
-  // Edit prefs from MyLunches — return to MyLunches after done
+  // Edit prefs from the "Mes déjeuners" tab — return to Home after done
   function handleEditFromHistory(entry) {
     persistIdentity({
       code:      entry.session.code,
       uid:       entry.participantId,
       organizer: entry.isOrganizer,
     })
-    setAfterPrefs('mylunches')
+    setAfterPrefs('home')
     setScreen('preferences')
   }
 
@@ -177,7 +176,8 @@ export default function App() {
           t={t}
           onCreate={() => setScreen('create')}
           onJoin={goJoin}
-          onMyLunches={() => setScreen('mylunches')}
+          onRejoin={handleRejoinFromHistory}
+          onEdit={handleEditFromHistory}
           onGuide={() => {
             window.history.replaceState({}, '', `${window.location.pathname}?guide=1`)
             setScreen('guide')
@@ -228,7 +228,7 @@ export default function App() {
           sessionCode={sessionCode}
           userId={userId}
           onBack={() => {
-            if (afterPrefs === 'mylunches') { setAfterPrefs('waiting'); setScreen('mylunches') }
+            if (afterPrefs === 'home') { setAfterPrefs('waiting'); setScreen('home') }
             else handleLeave()
           }}
           onDone={() => {
@@ -250,15 +250,6 @@ export default function App() {
           onLeave={handleLeave}
           onEditPrefs={() => setScreen('preferences')}
           onResultsReady={() => { setCameFromResults(false); setScreen('results') }}
-        />
-      )}
-
-      {screen === 'mylunches' && (
-        <MyLunchesScreen
-          t={t}
-          onBack={() => setScreen('home')}
-          onRejoin={handleRejoinFromHistory}
-          onEdit={handleEditFromHistory}
         />
       )}
 

@@ -42,6 +42,7 @@ const CUISINE_KEYWORDS = {
   'Brasserie':    'brasserie bistrot',
   'Libanaise':    'restaurant libanais',
   'Mexicaine':    'restaurant mexicain',
+  'Orientale':    'restaurant oriental',
 }
 
 const FIELD_MASK = [

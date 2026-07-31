@@ -40,6 +40,7 @@ const CUISINE_OSM_TAGS = {
   'Brasserie':    'brasserie|french|regional|traditional',
   'Libanaise':    'lebanese|middle_eastern',
   'Mexicaine':    'mexican',
+  'Orientale':    'middle_eastern|turkish',
 }
 
 const OSM_CUISINE_TO_LABEL = {
@@ -50,7 +51,7 @@ const OSM_CUISINE_TO_LABEL = {
   asian: 'Asiatique', chinese: 'Chinoise', thai: 'Thaïlandaise',
   vietnamese: 'Vietnamienne', korean: 'Coréenne',
   vegetarian: 'Végétarienne', vegan: 'Végétalienne',
-  lebanese: 'Libanaise', middle_eastern: 'Orientale',
+  lebanese: 'Libanaise', middle_eastern: 'Orientale', turkish: 'Orientale',
   mexican: 'Mexicaine',
 }
 

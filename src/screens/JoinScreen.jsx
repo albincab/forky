@@ -11,8 +11,8 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
   useEffect(() => {
     if (initialCode || code) return
     navigator.clipboard?.readText().then(text => {
-      const trimmed = text.trim().toUpperCase()
-      if (/^[A-Z2-9]{4}$/.test(trimmed)) setCode(trimmed)
+      const trimmed = text.trim()
+      if (/^[0-9]{4}$/.test(trimmed)) setCode(trimmed)
     }).catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -51,10 +51,10 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
 
       {/* Header */}
       <div>
-        <div className="eyebrow">— on m'a invité·e —</div>
+        <div className="eyebrow">— rejoindre une table —</div>
         <div className="display" style={{ fontSize: 46, marginTop: 6 }}>
           <span>J'ai le</span>
-          <span>Code.</span>
+          <span>Numéro.</span>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
         {/* Code strip + real input */}
         <div>
           <div className="eyebrow" style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
-            <span>4 caractères</span>
+            <span>4 chiffres</span>
             <span>↓ saisir</span>
           </div>
           {/* Visual strip */}
@@ -77,10 +77,9 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
               type="text"
               placeholder={t.codePlaceholder}
               value={code}
-              onChange={e => { setCode(e.target.value.toUpperCase().slice(0, 4)); setError('') }}
+              onChange={e => { setCode(e.target.value.replace(/\D/g, '').slice(0, 4)); setError('') }}
               maxLength={4}
-              inputMode="text"
-              autoCapitalize="characters"
+              inputMode="numeric"
               disabled={loading}
             />
           </div>

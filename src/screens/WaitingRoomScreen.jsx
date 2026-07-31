@@ -184,14 +184,13 @@ export default function WaitingRoomScreen({
             <span>🚶 de leur côté</span>
           </div>
         )}
-        <div className="group-pill" style={{ background: 'var(--yellow)', color: 'var(--ink)', marginLeft: 'auto' }}>
-          <b style={{ color: 'var(--red)' }}>{prefsCount}/{prefsTotal}</b>
-          <span style={{ color: 'var(--ink)' }}>PRÊT</span>
-        </div>
       </div>
 
       <hr className="rule-thick" />
-      <div className="eyebrow">— participants —</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <div className="eyebrow">— participants —</div>
+        <span className="eyebrow" style={{ color: 'var(--red)' }}>{prefsCount}/{prefsTotal} prêt</span>
+      </div>
 
       {/* Participant list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} aria-live="polite">

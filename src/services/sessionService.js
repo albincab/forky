@@ -3,9 +3,9 @@ import { supabase } from './supabaseClient.js'
 
 // ─── Code generation ──────────────────────────────────────────────────────────
 
-/** Generates a 4-character session code (no ambiguous chars: 0, O, I, 1, l) */
+/** Generates a 4-digit table number */
 export function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const chars = '0123456789'
   return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
