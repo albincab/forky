@@ -205,7 +205,7 @@ export default {
     {
       severity: '🟡',
       title: 'AI-based budget/allergy filtering depends on a free quota',
-      desc: 'When enabled, the AI (Gemini, free) refines the 3 suggested restaurants based on the group\'s most restrictive budget and allergies. That free quota is limited.',
+      desc: 'When enabled, the AI (Groq, free) refines the 3 suggested restaurants based on the group\'s most restrictive budget and allergies. That free quota is limited.',
       mitigation: 'If the quota is exceeded or the service is unavailable, the app automatically falls back to its standard selection (cuisine + mode) — no visible error, just without that finer filtering that day.',
     },
     {

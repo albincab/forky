@@ -205,7 +205,7 @@ export default {
     {
       severity: '🟡',
       title: 'Le filtrage IA du budget et des allergies dépend d\'un quota gratuit',
-      desc: 'Quand elle est activée, l\'IA (Gemini, gratuite) affine les 3 restaurants proposés selon le budget le plus restrictif et les allergies du groupe. Ce quota gratuit est limité.',
+      desc: 'Quand elle est activée, l\'IA (Groq, gratuite) affine les 3 restaurants proposés selon le budget le plus restrictif et les allergies du groupe. Ce quota gratuit est limité.',
       mitigation: 'En cas de quota dépassé ou d\'indisponibilité, l\'appli repasse automatiquement sur sa sélection standard (cuisine + mode) — sans erreur visible, mais sans ce filtrage fin ce jour-là.',
     },
     {

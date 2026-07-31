@@ -100,9 +100,11 @@ VITE_CLAUDE_API_KEY=sk-ant-...
 
 ## Variable d'environnement optionnelle — filtrage IA budget/allergies
 ```
-VITE_GEMINI_API_KEY=AIzaSy...
+VITE_GROQ_API_KEY=gsk_...
 ```
-Gratuite (Google AI Studio, sans carte bancaire). Utilisée dans `claudeService.js` (`getGeminiPicks`) pour faire choisir à Gemini Flash 3 restaurants parmi le pool OSM en tenant compte du budget le plus restrictif et des allergies du groupe — chose que la sélection algorithmique seule ne fait pas (elle ne filtre que sur cuisine + mode). Sans clé, ou si le quota gratuit est dépassé (HTTP 429) ou l'appel échoue/timeout, repli automatique et silencieux sur la sélection algorithmique existante — jamais d'erreur visible pour l'utilisateur.
+Gratuite (console.groq.com, sans carte bancaire). Utilisée dans `src/services/aiRankingService.js` (`getGroqPicks`, appelé via `getAIPicks`) pour faire choisir à Groq (Llama 3.3 70B) 3 restaurants parmi le pool OSM en tenant compte du budget le plus restrictif et des allergies du groupe — chose que la sélection algorithmique seule ne fait pas (elle ne filtre que sur cuisine + mode). Sans clé, ou si le quota gratuit est dépassé (HTTP 429) ou l'appel échoue/timeout, repli automatique et silencieux sur la sélection algorithmique existante dans `claudeService.js` — jamais d'erreur visible pour l'utilisateur.
+
+**Gemini Flash (dormant)** : implémentation alternative gardée fonctionnelle dans le même fichier (`getGeminiPicks`, clé `VITE_GEMINI_API_KEY`), non utilisée par défaut. Les CGU Google interdisent le tier gratuit de l'API Gemini pour toute appli servant des utilisateurs UE/UK/Suisse — chaque appel échoue en 429 (`limit: 0`) depuis la France, quels que soient la clé ou le projet Google Cloud (contrairement au Playground AI Studio, qui n'est pas soumis à cette clause). Pour réactiver Gemini à la place de Groq, changer l'appel dans `getAIPicks()`.
 
 ## Commandes
 ```bash

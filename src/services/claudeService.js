@@ -11,6 +11,7 @@
 // needs Overpass to be up the first time a given area is searched; every
 // later search in that area reads the cache and never depends on Overpass.
 import { supabase } from './supabaseClient.js'
+import { getAIPicks } from './aiRankingService.js'
 
 // Fallback: Rue Édouard Martel, Saint-Étienne (42100)
 const FALLBACK_LOCATION = { lat: 45.4165, lon: 4.3808 }
@@ -19,14 +20,6 @@ const SEARCH_RADIUS = 5000 // metres — wide, since the pool is cached rather t
 const OVERPASS_PROXY_TIMEOUT_MS = 12000
 const RECOMMENDATIONS_TIMEOUT_MS = 30000
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days — restaurants near an office barely change
-
-// Optional AI ranking (budget + allergies) via Gemini Flash — free tier, no credit card required.
-// Silently skipped if VITE_GEMINI_API_KEY is unset, and silently falls back to the algorithmic
-// selection below on any error (quota exceeded, timeout, network) — never surfaced to the user.
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
-const GEMINI_TIMEOUT_MS = 8000
-const GEMINI_CANDIDATE_LIMIT = 30
-const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
 
 // Map French cuisine names to OSM cuisine tag values (regex-compatible)
 const CUISINE_OSM_TAGS = {
@@ -180,114 +173,6 @@ function scoreElement({ tags }) {
   return Object.keys(tags).length
 }
 
-function getMostRestrictiveBudget(participants) {
-  const budgets = participants.map(p => p.budget).filter(Boolean)
-  if (budgets.length === 0) return null
-  const minIdx = Math.min(...budgets.map(b => BUDGET_ORDER.indexOf(b)).filter(i => i >= 0))
-  return BUDGET_ORDER[Math.max(0, minIdx)]
-}
-
-function getAllergies(participants) {
-  return [...new Set(participants.flatMap(p => p.allergies || []))]
-}
-
-/** Builds the Gemini prompt asking it to pick 3 restaurants from a fixed candidate list. */
-export function buildGeminiPrompt(candidates, participants, topCuisines) {
-  const budget    = getMostRestrictiveBudget(participants)
-  const allergies = getAllergies(participants)
-
-  const list = candidates
-    .map((c, i) => `${i + 1}. ${c.tags.name} — cuisine: ${c.tags.cuisine || 'non renseignée'}`)
-    .join('\n')
-
-  return `Tu aides un groupe de collègues à choisir un restaurant pour déjeuner.
-Budget maximum du groupe : ${budget || 'non précisé'}.
-Allergies/régimes à respecter impérativement : ${allergies.length > 0 ? allergies.join(', ') : 'aucune'}.
-Cuisines préférées du groupe : ${topCuisines.length > 0 ? topCuisines.join(', ') : 'aucune préférence'}.
-
-Voici la liste des restaurants disponibles (choisis UNIQUEMENT parmi cette liste, n'invente jamais un nom qui n'y figure pas) :
-${list}
-
-Choisis les 3 meilleurs restaurants de cette liste pour ce groupe, en tenant compte du budget et des allergies.
-Réponds uniquement en JSON avec cette forme exacte, sans texte autour :
-{"picks": [{"name": "nom exact copié depuis la liste", "budget": "<15|15-30|30-50|>50", "pourquoi": "courte explication en français"}]}`
-}
-
-/**
- * Asks Gemini to pick 3 restaurants from `pool` accounting for budget and allergies.
- * Returns null (never throws) if the API key is missing, the request fails/times out,
- * or Gemini's picks don't match real names in `pool` — callers fall back to the
- * algorithmic selection in that case.
- */
-export async function getGeminiPicks(pool, participants, topCuisines) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-  if (!apiKey) return null
-
-  const candidates = [...pool]
-    .sort((a, b) => scoreElement(b) - scoreElement(a))
-    .slice(0, GEMINI_CANDIDATE_LIMIT)
-  if (candidates.length === 0) return null
-
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS)
-  let data
-  try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: buildGeminiPrompt(candidates, participants, topCuisines) }] }],
-        generationConfig: { responseMimeType: 'application/json' },
-      }),
-      signal: controller.signal,
-    })
-    if (!response.ok) {
-      // Free tier, best-effort: a 429 (quota exceeded) is an expected outcome, not a bug
-      console.warn(`Gemini unavailable (HTTP ${response.status}), falling back to standard selection`)
-      return null
-    }
-    data = await response.json()
-  } catch {
-    return null
-  } finally {
-    clearTimeout(timer)
-  }
-
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!text) return null
-
-  let parsed
-  try {
-    parsed = JSON.parse(text)
-  } catch {
-    return null
-  }
-  if (!Array.isArray(parsed?.picks)) return null
-
-  const matched = parsed.picks
-    .map(pick => {
-      const restaurant = candidates.find(c => c.tags.name === pick.name)
-      return restaurant ? { restaurant, budget: pick.budget || null, pourquoi: pick.pourquoi || '' } : null
-    })
-    .filter(Boolean)
-    .slice(0, 3)
-
-  if (matched.length < 3) return null
-
-  return matched.map(({ restaurant, budget, pourquoi }) => ({
-    name:      restaurant.tags.name,
-    cuisine:   getCuisineLabel(restaurant.tags.cuisine),
-    adresse:   buildAddress(restaurant.tags),
-    telephone: buildPhone(restaurant.tags),
-    budget,
-    note:      null,
-    pourquoi,
-    lat:       restaurant.lat,
-    lon:       restaurant.lon,
-    aiPicked:  true,
-  }))
-}
-
 /**
  * Returns up to 3 real restaurants from OpenStreetMap for the given participants and mode.
  * Tries to match the group's top cuisine first, falls back to any restaurant nearby.
@@ -329,8 +214,21 @@ async function getRecommendationsInner({ participants, mode }) {
 
   const modeFiltered = filterByMode(pool, mode)
 
-  const geminiPicks = await getGeminiPicks(modeFiltered, participants, topCuisines)
-  if (geminiPicks) return geminiPicks
+  const aiPicks = await getAIPicks(modeFiltered, participants, topCuisines)
+  if (aiPicks) {
+    return aiPicks.map(({ restaurant, budget, pourquoi }) => ({
+      name:      restaurant.tags.name,
+      cuisine:   getCuisineLabel(restaurant.tags.cuisine),
+      adresse:   buildAddress(restaurant.tags),
+      telephone: buildPhone(restaurant.tags),
+      budget,
+      note:      null,
+      pourquoi,
+      lat:       restaurant.lat,
+      lon:       restaurant.lon,
+      aiPicked:  true,
+    }))
+  }
 
   // Prefer the group's top cuisine, fall back to the full (mode-filtered) pool
   const cuisineMatched = filterByCuisine(modeFiltered, topCuisines)
