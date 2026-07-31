@@ -7,7 +7,6 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
   const [code,    setCode]    = useState(initialCode || '')
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
-  const [mealMode, setMealMode] = useState('out')
 
   useEffect(() => {
     if (initialCode || code) return
@@ -27,7 +26,6 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
       const result = await joinSession({
         code: code.trim(),
         participantName: name.trim(),
-        mealMode,
       })
 
       if (result.error === 'SESSION_NOT_FOUND') { setError(t.sessionNotFound); return }
@@ -41,11 +39,6 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
       setLoading(false)
     }
   }
-
-  const mealOptions = [
-    { key: 'out',     emoji: '🍽️', title: t.mealOut,     desc: t.mealOutDesc },
-    { key: 'inplace', emoji: '🏠', title: t.mealInPlace,  desc: t.mealInPlaceDesc },
-  ]
 
   return (
     <div className="screen">
@@ -113,61 +106,6 @@ export default function JoinScreen({ t, initialCode, onBack, onJoined }) {
         </div>
 
         {error && <span className="error-msg" role="alert">⚠ {error}</span>}
-
-        <hr className="rule-thick" />
-        <div className="eyebrow">— mon midi —</div>
-
-        {/* Meal mode tiles */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {mealOptions.map(o => (
-            <button
-              key={o.key}
-              type="button"
-              style={{
-                border: '1.5px solid var(--ink)',
-                background: mealMode === o.key ? 'var(--ink)' : 'var(--bg)',
-                color: mealMode === o.key ? 'var(--bg)' : 'var(--ink)',
-                padding: '12px 14px',
-                display: 'flex',
-                gap: 12,
-                alignItems: 'center',
-                boxShadow: mealMode === o.key ? '4px 4px 0 var(--red)' : 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                width: '100%',
-                borderRadius: 0,
-                transition: 'background 0.12s, box-shadow 0.12s',
-              }}
-              onClick={() => setMealMode(o.key)}
-              aria-pressed={mealMode === o.key}
-            >
-              <div style={{ fontSize: 24, lineHeight: 1 }}>{o.emoji}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontFamily: "'Boldonse', serif",
-                  fontSize: 16,
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                }}>
-                  {o.title}
-                </div>
-                <div style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 12,
-                  color: 'var(--mute)',
-                  marginTop: 4,
-                }}>
-                  {o.desc}
-                </div>
-              </div>
-              {mealMode === o.key && (
-                <span style={{ fontFamily: "'Boldonse', serif", fontSize: 24, color: mealMode === o.key ? 'var(--yellow)' : 'var(--ink)' }}>
-                  ✓
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
 
         {/* Submit */}
         <div className="mt-auto">
