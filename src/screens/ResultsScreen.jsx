@@ -4,9 +4,16 @@ import RestaurantMap from '../components/RestaurantMap.jsx'
 
 // Single restaurant card — Affiche style
 function RestoCard({ restaurant, index, t }) {
-  const { name, cuisine, adresse, budget, note, pourquoi } = restaurant
+  const { name, cuisine, adresse, telephone, budget, note, pourquoi, lat, lon } = restaurant
   const isTop = index === 0
   const num = String(index + 1).padStart(2, '0')
+
+  const hasCoords = typeof lat === 'number' && typeof lon === 'number'
+  const mapsUrl = adresse
+    ? `https://www.google.com/maps/search/${encodeURIComponent(name + ' ' + adresse + ' Saint-Étienne')}`
+    : hasCoords
+      ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
+      : null
 
   return (
     <div className={`resto ${isTop ? 'top' : ''}`}>
@@ -34,18 +41,31 @@ function RestoCard({ restaurant, index, t }) {
         {cuisine && <span>🍴 {cuisine}</span>}
         {cuisine && budget && <span>·</span>}
         {budget && <span>💶 {budget}</span>}
-        {adresse && (
+        {mapsUrl && (
           <>
             <span>·</span>
             <a
               className="restaurant-address-link"
-              href={`https://www.google.com/maps/search/${encodeURIComponent(name + ' ' + adresse + ' Saint-Étienne')}`}
+              href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Ouvrir ${adresse} dans Google Maps`}
+              aria-label={adresse ? `Ouvrir ${adresse} dans Google Maps` : `Ouvrir ${name} dans Google Maps`}
               style={{ color: 'inherit' }}
             >
-              📍 {adresse} ↗
+              📍 {adresse || 'Voir sur la carte'} ↗
+            </a>
+          </>
+        )}
+        {telephone && (
+          <>
+            <span>·</span>
+            <a
+              className="restaurant-address-link"
+              href={`tel:${telephone.replace(/\s+/g, '')}`}
+              aria-label={`Appeler ${name} au ${telephone}`}
+              style={{ color: 'inherit' }}
+            >
+              📞 {telephone}
             </a>
           </>
         )}

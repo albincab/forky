@@ -60,6 +60,10 @@ function buildAddress(tags) {
   return [line1, area].filter(Boolean).join(', ')
 }
 
+function buildPhone(tags) {
+  return tags.phone || tags['contact:phone'] || null
+}
+
 function getCuisineLabel(osmCuisine) {
   if (!osmCuisine) return 'Restaurant'
   const first = osmCuisine.split(/[;,]/)[0].trim().toLowerCase()
@@ -219,12 +223,13 @@ async function getRecommendationsInner({ participants, mode }) {
   const picked = top.sort(() => Math.random() - 0.5).slice(0, 3)
 
   return picked.map(({ tags, lat, lon }) => ({
-    name:     tags.name,
-    cuisine:  getCuisineLabel(tags.cuisine),
-    adresse:  buildAddress(tags),
-    budget:   null,
-    note:     null,
-    pourquoi: buildWhy(tags, topCuisines),
+    name:      tags.name,
+    cuisine:   getCuisineLabel(tags.cuisine),
+    adresse:   buildAddress(tags),
+    telephone: buildPhone(tags),
+    budget:    null,
+    note:      null,
+    pourquoi:  buildWhy(tags, topCuisines),
     lat,
     lon,
   }))
