@@ -15,7 +15,7 @@ const OVERPASS_ENDPOINTS = [
 ]
 // Overpass' usage policy requires a descriptive User-Agent; requests without
 // one are rejected (406/429) by all three mirrors.
-const USER_AGENT = 'ATable/1.0 (+https://forky-seven.vercel.app; contact: albin.cabut@thuasne.fr)'
+const USER_AGENT = 'ATable/1.0 (+https://forky-seven.vercel.app; contact: albincab@gmail.com)'
 // Kept low: 3 mirrors tried sequentially worst-case must stay under Vercel's
 // default 10s serverless function duration limit (3 × 3s = 9s).
 const OVERPASS_TIMEOUT_MS = 3000
