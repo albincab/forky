@@ -48,10 +48,15 @@ const OSM_CUISINE_TO_LABEL = {
   mexican: 'Mexicaine',
 }
 
-function getTopCuisines(participants) {
+/** Returns { cuisine: voteCount } for every cuisine picked by at least one participant */
+function getCuisineVotes(participants) {
   const votes = {}
   participants.forEach(p => (p.cuisines || []).forEach(c => { votes[c] = (votes[c] || 0) + 1 }))
-  return Object.entries(votes).sort((a, b) => b[1] - a[1]).map(([c]) => c)
+  return votes
+}
+
+function sortCuisinesByVotes(cuisineVotes) {
+  return Object.entries(cuisineVotes).sort((a, b) => b[1] - a[1]).map(([c]) => c)
 }
 
 function buildAddress(tags) {
@@ -126,10 +131,13 @@ function filterByMode(pool, mode) {
   return pool.filter(p => /yes|only/i.test(p.tags.takeaway || ''))
 }
 
-function filterByCuisine(pool, topCuisines) {
-  const pattern = topCuisines.length > 0 ? CUISINE_OSM_TAGS[topCuisines[0]] : null
-  if (!pattern) return []
-  const regex = new RegExp(pattern, 'i')
+// Matches restaurants against every cuisine that got at least one vote, not just the
+// single most-voted one — a group split between two cuisines shouldn't have the
+// minority's votes silently discarded from the candidate pool.
+export function filterByCuisine(pool, topCuisines) {
+  const patterns = topCuisines.map(c => CUISINE_OSM_TAGS[c]).filter(Boolean)
+  if (patterns.length === 0) return []
+  const regex = new RegExp(patterns.join('|'), 'i')
   return pool.filter(p => p.tags.cuisine && regex.test(p.tags.cuisine))
 }
 
@@ -173,6 +181,56 @@ function scoreElement({ tags }) {
   return Object.keys(tags).length
 }
 
+/** Splits `count` slots across cuisines proportionally to their votes (largest-remainder rounding) */
+function allocateCuisineQuota(cuisineVotes, count) {
+  const entries    = Object.entries(cuisineVotes)
+  const totalVotes = entries.reduce((sum, [, v]) => sum + v, 0)
+  if (totalVotes === 0) return []
+
+  const allocations = entries.map(([cuisine, votes]) => {
+    const exact = (votes / totalVotes) * count
+    return { cuisine, quota: Math.floor(exact), remainder: exact - Math.floor(exact) }
+  })
+  let remaining = count - allocations.reduce((sum, a) => sum + a.quota, 0)
+  allocations.sort((a, b) => b.remainder - a.remainder)
+  for (let i = 0; i < remaining; i++) allocations[i].quota += 1
+  return allocations
+}
+
+/** Takes the richest `count` entries from `pool`, with a light shuffle among them for variety */
+function pickTopWithVariety(pool, count) {
+  if (count <= 0) return []
+  const top = [...pool].sort((a, b) => scoreElement(b) - scoreElement(a)).slice(0, Math.max(count * 3, 10))
+  return top.sort(() => Math.random() - 0.5).slice(0, count)
+}
+
+/**
+ * Picks `count` restaurants from `pool`, split across cuisines proportionally to the
+ * group's votes (e.g. 3 votes Française + 2 votes Japonaise → aims for ~2 Française +
+ * ~1 Japonaise). Backfills with the richest remaining restaurants if a cuisine doesn't
+ * have enough matches, or if nobody voted for a cuisine at all.
+ */
+export function pickByCuisineQuota(pool, cuisineVotes, count) {
+  const used  = new Set()
+  const picks = []
+
+  for (const { cuisine, quota } of allocateCuisineQuota(cuisineVotes, count)) {
+    if (quota === 0) continue
+    const pattern = CUISINE_OSM_TAGS[cuisine]
+    if (!pattern) continue
+    const regex = new RegExp(pattern, 'i')
+    const matches = pool.filter(p => !used.has(p.tags.name) && p.tags.cuisine && regex.test(p.tags.cuisine))
+    pickTopWithVariety(matches, quota).forEach(m => { picks.push(m); used.add(m.tags.name) })
+  }
+
+  if (picks.length < count) {
+    const rest = pool.filter(p => !used.has(p.tags.name))
+    pickTopWithVariety(rest, count - picks.length).forEach(m => picks.push(m))
+  }
+
+  return picks.slice(0, count)
+}
+
 /**
  * Returns up to 3 real restaurants from OpenStreetMap for the given participants and mode.
  * Tries to match the group's top cuisine first, falls back to any restaurant nearby.
@@ -191,7 +249,8 @@ export async function getRecommendations(params) {
 }
 
 async function getRecommendationsInner({ participants, mode }) {
-  const topCuisines = getTopCuisines(participants)
+  const cuisineVotes = getCuisineVotes(participants)
+  const topCuisines  = sortCuisinesByVotes(cuisineVotes)
   const location     = await getLocation()
   const bucket        = toBucket(location)
 
@@ -214,7 +273,20 @@ async function getRecommendationsInner({ participants, mode }) {
 
   const modeFiltered = filterByMode(pool, mode)
 
-  const aiPicks = await getAIPicks(modeFiltered, participants, topCuisines)
+  // Prefer the group's top cuisine, fall back to the full (mode-filtered) pool
+  const cuisineMatched = filterByCuisine(modeFiltered, topCuisines)
+
+  // Real cuisine matches first (so the AI actually has them to choose from instead of
+  // whichever restaurants merely have the richest OSM tags), then the rest as backup —
+  // each group sorted by richness of OSM data.
+  const matchedNames = new Set(cuisineMatched.map(p => p.tags.name))
+  const nonMatched    = modeFiltered.filter(p => !matchedNames.has(p.tags.name))
+  const aiCandidatePool = [
+    ...[...cuisineMatched].sort((a, b) => scoreElement(b) - scoreElement(a)),
+    ...[...nonMatched].sort((a, b) => scoreElement(b) - scoreElement(a)),
+  ]
+
+  const aiPicks = await getAIPicks(aiCandidatePool, participants, cuisineVotes)
   if (aiPicks) {
     return aiPicks.map(({ restaurant, budget, pourquoi }) => ({
       name:      restaurant.tags.name,
@@ -230,16 +302,14 @@ async function getRecommendationsInner({ participants, mode }) {
     }))
   }
 
-  // Prefer the group's top cuisine, fall back to the full (mode-filtered) pool
-  const cuisineMatched = filterByCuisine(modeFiltered, topCuisines)
-  const places = cuisineMatched.length >= 3 ? cuisineMatched : modeFiltered.length >= 3 ? modeFiltered : pool
+  const basePool = modeFiltered.length >= 3 ? modeFiltered : pool
 
-  if (places.length === 0) throw new Error('EMPTY_RESULTS')
+  if (basePool.length === 0) throw new Error('EMPTY_RESULTS')
 
-  // Sort by richness of OSM data, then pick 3 with slight shuffle for variety
-  places.sort((a, b) => scoreElement(b) - scoreElement(a))
-  const top = places.slice(0, Math.min(10, places.length))
-  const picked = top.sort(() => Math.random() - 0.5).slice(0, 3)
+  // Split across the group's voted cuisines proportionally (e.g. 3 votes Française +
+  // 2 votes Japonaise → ~2 Française + ~1 Japonaise), backfilling with the richest
+  // remaining restaurants when a cuisine has too few matches or nobody voted.
+  const picked = pickByCuisineQuota(basePool, cuisineVotes, 3)
 
   return picked.map(({ tags, lat, lon }) => ({
     name:      tags.name,

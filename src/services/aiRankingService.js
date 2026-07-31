@@ -10,13 +10,11 @@ const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
 const CANDIDATE_LIMIT = 30
 const AI_TIMEOUT_MS = 8000
 
-// Prefer entries with more OSM tags (richer data = more active listing)
-function scoreCandidate({ tags }) {
-  return Object.keys(tags).length
-}
-
+// The caller (claudeService.js) is responsible for ordering `pool` by relevance —
+// real cuisine matches first, then the rest — so this just takes the top N as given
+// instead of re-sorting, which would bury cuisine matches under generic OSM richness.
 function pickCandidates(pool) {
-  return [...pool].sort((a, b) => scoreCandidate(b) - scoreCandidate(a)).slice(0, CANDIDATE_LIMIT)
+  return pool.slice(0, CANDIDATE_LIMIT)
 }
 
 function getMostRestrictiveBudget(participants) {
@@ -31,23 +29,42 @@ function getAllergies(participants) {
 }
 
 /** Builds the prompt asking the AI to pick 3 restaurants from a fixed candidate list. Provider-agnostic. */
-export function buildAIPrompt(candidates, participants, topCuisines) {
-  const budget    = getMostRestrictiveBudget(participants)
+export function buildAIPrompt(candidates, participants, cuisineVotes) {
+  const budget = getMostRestrictiveBudget(participants)
   const allergies = getAllergies(participants)
 
+  const cuisineEntries = Object.entries(cuisineVotes).sort((a, b) => b[1] - a[1])
+  const cuisineText = cuisineEntries.length > 0
+    ? cuisineEntries.map(([cuisine, votes]) => `${cuisine} (${votes} vote${votes > 1 ? 's' : ''})`).join(', ')
+    : 'aucune préférence'
+
   const list = candidates
-    .map((c, i) => `${i + 1}. ${c.tags.name} — cuisine: ${c.tags.cuisine || 'non renseignée'}`)
+    .map((c, i) => `${i + 1}. ${c.tags.name} — cuisine: ${c.tags.cuisine || 'non renseignée'} — horaires: ${c.tags.opening_hours || 'non renseignés'}`)
     .join('\n')
 
-  return `Tu aides un groupe de collègues à choisir un restaurant pour déjeuner.
+  return `Tu aides un groupe de collègues à choisir un restaurant pour déjeuner (vers midi).
 Budget maximum du groupe : ${budget || 'non précisé'}.
 Allergies/régimes à respecter impérativement : ${allergies.length > 0 ? allergies.join(', ') : 'aucune'}.
-Cuisines préférées du groupe : ${topCuisines.length > 0 ? topCuisines.join(', ') : 'aucune préférence'}.
+Cuisines préférées du groupe, avec le nombre de votes reçus : ${cuisineText}.
 
-Voici la liste des restaurants disponibles (choisis UNIQUEMENT parmi cette liste, n'invente jamais un nom qui n'y figure pas) :
+Voici la liste des restaurants disponibles, classés par pertinence décroissante pour ce groupe
+(les restaurants correspondant vraiment aux cuisines préférées apparaissent en premier)
+— choisis UNIQUEMENT parmi cette liste, n'invente jamais un nom qui n'y figure pas :
 ${list}
 
-Choisis les 3 meilleurs restaurants de cette liste pour ce groupe, en tenant compte du budget et des allergies.
+Choisis les 3 meilleurs restaurants de cette liste pour ce groupe. Priorité, dans l'ordre :
+1. Respecter scrupuleusement les allergies.
+2. Écarter un restaurant si ses horaires indiquent clairement qu'il est fermé le midi (ex: uniquement
+   ouvert le soir) — en cas d'horaires absents ou ambigus, ne pas l'écarter pour autant.
+3. Si les votes sont partagés entre plusieurs cuisines, répartis les 3 restaurants proportionnellement
+   à ces votes (ex: 3 votes Française et 2 votes Japonaise → vise environ 2 restaurants Française et
+   1 restaurant Japonaise), dans la limite de ce qui est réellement disponible dans la liste pour
+   chaque cuisine. Ne choisis une cuisine différente de celles votées que si aucun restaurant de la
+   liste n'y correspond.
+4. Respecter le budget indiqué.
+
+Dans le champ "pourquoi", ne justifie que par des faits fournis ci-dessus (cuisine, budget, allergies,
+horaires) — n'invente jamais un jugement de qualité (note, réputation, avis) que tu n'as pas reçu.
 Réponds uniquement en JSON avec cette forme exacte, sans texte autour :
 {"picks": [{"name": "nom exact copié depuis la liste", "budget": "<15|15-30|30-50|>50", "pourquoi": "courte explication en français"}]}`
 }
@@ -72,7 +89,7 @@ function matchPicks(picks, candidates) {
 // below if that restriction is ever lifted or a paid plan is set up.
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
 
-export async function getGeminiPicks(pool, participants, topCuisines) {
+export async function getGeminiPicks(pool, participants, cuisineVotes) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY
   if (!apiKey) return null
 
@@ -87,7 +104,7 @@ export async function getGeminiPicks(pool, participants, topCuisines) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildAIPrompt(candidates, participants, topCuisines) }] }],
+        contents: [{ parts: [{ text: buildAIPrompt(candidates, participants, cuisineVotes) }] }],
         generationConfig: { responseMimeType: 'application/json' },
       }),
       signal: controller.signal,
@@ -120,7 +137,7 @@ export async function getGeminiPicks(pool, participants, topCuisines) {
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
-export async function getGroqPicks(pool, participants, topCuisines) {
+export async function getGroqPicks(pool, participants, cuisineVotes) {
   const apiKey = import.meta.env.VITE_GROQ_API_KEY
   if (!apiKey) return null
 
@@ -139,7 +156,7 @@ export async function getGroqPicks(pool, participants, topCuisines) {
       },
       body: JSON.stringify({
         model: GROQ_MODEL,
-        messages: [{ role: 'user', content: buildAIPrompt(candidates, participants, topCuisines) }],
+        messages: [{ role: 'user', content: buildAIPrompt(candidates, participants, cuisineVotes) }],
         response_format: { type: 'json_object' },
       }),
       signal: controller.signal,
@@ -171,7 +188,7 @@ export async function getGroqPicks(pool, participants, topCuisines) {
  * Active entry point used by claudeService.js. Swap the returned call to reactivate
  * Gemini instead of Groq — everything else (prompt, matching, fallback) is shared.
  */
-export function getAIPicks(pool, participants, topCuisines) {
-  return getGroqPicks(pool, participants, topCuisines)
-  // return getGeminiPicks(pool, participants, topCuisines)
+export function getAIPicks(pool, participants, cuisineVotes) {
+  return getGroqPicks(pool, participants, cuisineVotes)
+  // return getGeminiPicks(pool, participants, cuisineVotes)
 }

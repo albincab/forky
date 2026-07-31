@@ -178,7 +178,7 @@ export default {
     { title: 'Lance la recherche', desc: 'reçoit 3 restaurants adaptés au groupe' },
   ],
   guideHowParticipant: [
-    { title: 'Rejoint', desc: 'avec le numéro reçu, ou une table ouverte visible dans Les buffets' },
+    { title: 'Rejoint', desc: 'avec le numéro reçu, ou en choisissant une table ouverte dans Les buffets' },
     { title: 'Indique ses envies', desc: 'cuisine, budget, allergies — sauté si "gamelle"' },
     { title: 'Attend', desc: 'l\'écran se met à jour tout seul, rien à rafraîchir' },
     { title: 'Consulte les résultats', desc: '3 restaurants, avec adresse' },

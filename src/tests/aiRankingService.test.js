@@ -10,14 +10,14 @@ const candidates = [
 
 describe('buildAIPrompt', () => {
   it('lists every candidate by exact name', () => {
-    const prompt = buildAIPrompt(candidates, [], [])
+    const prompt = buildAIPrompt(candidates, [], {})
     expect(prompt).toContain('Le Petit Gaulois')
     expect(prompt).toContain('Sushi Zen')
   })
 
   it('includes the group\'s most restrictive budget', () => {
     const participants = [{ budget: '30-50' }, { budget: '<15' }, { budget: '15-30' }]
-    const prompt = buildAIPrompt(candidates, participants, [])
+    const prompt = buildAIPrompt(candidates, participants, {})
     expect(prompt).toContain('<15')
   })
 
@@ -26,20 +26,27 @@ describe('buildAIPrompt', () => {
       { allergies: ['Gluten', 'Lactose'] },
       { allergies: ['Gluten'] },
     ]
-    const prompt = buildAIPrompt(candidates, participants, [])
+    const prompt = buildAIPrompt(candidates, participants, {})
     const glutenMatches = prompt.match(/Gluten/g) || []
     expect(glutenMatches.length).toBe(1)
     expect(prompt).toContain('Lactose')
   })
 
   it('reports no allergy restriction when none are declared', () => {
-    const prompt = buildAIPrompt(candidates, [{ allergies: [] }], [])
+    const prompt = buildAIPrompt(candidates, [{ allergies: [] }], {})
     expect(prompt).toContain('aucune')
   })
 
   it('instructs the model to only pick from the given list', () => {
-    const prompt = buildAIPrompt(candidates, [], [])
+    const prompt = buildAIPrompt(candidates, [], {})
     expect(prompt).toMatch(/UNIQUEMENT/)
+  })
+
+  it('includes cuisine vote counts and the proportional split instruction when the group is split', () => {
+    const prompt = buildAIPrompt(candidates, [], { 'Française': 3, 'Japonaise': 2 })
+    expect(prompt).toContain('Française (3 votes)')
+    expect(prompt).toContain('Japonaise (2 votes)')
+    expect(prompt).toMatch(/proportionnellement/)
   })
 })
 
@@ -62,7 +69,7 @@ describe('getGroqPicks (active provider)', () => {
   it('returns null when no API key is configured (no network call)', async () => {
     vi.stubEnv('VITE_GROQ_API_KEY', '')
     global.fetch = vi.fn()
-    const result = await getGroqPicks(candidates, [], [])
+    const result = await getGroqPicks(candidates, [], {})
     expect(result).toBeNull()
     expect(global.fetch).not.toHaveBeenCalled()
   })
@@ -82,7 +89,7 @@ describe('getGroqPicks (active provider)', () => {
       }),
     })
     // Only 2 of 3 picks match real candidates — should fall back to null (< 3 valid matches)
-    const result = await getGroqPicks(candidates, [], [])
+    const result = await getGroqPicks(candidates, [], {})
     expect(result).toBeNull()
   })
 
@@ -92,7 +99,7 @@ describe('getGroqPicks (active provider)', () => {
       ok: true,
       json: async () => ({ choices: [{ message: { content: JSON.stringify({ picks: validPicks }) } }] }),
     })
-    const result = await getGroqPicks(threeCandidates, [], [])
+    const result = await getGroqPicks(threeCandidates, [], {})
     expect(result).toHaveLength(3)
     expect(result[0].restaurant.tags.name).toBe('Le Petit Gaulois')
     expect(result[0].budget).toBe('<15')
@@ -102,7 +109,7 @@ describe('getGroqPicks (active provider)', () => {
   it('returns null when the API responds with an error (e.g. rate limit)', async () => {
     vi.stubEnv('VITE_GROQ_API_KEY', 'test-key')
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 429 })
-    const result = await getGroqPicks(candidates, [], [])
+    const result = await getGroqPicks(candidates, [], {})
     expect(result).toBeNull()
   })
 })
@@ -116,7 +123,7 @@ describe('getGeminiPicks (dormant — kept working for reactivation)', () => {
   it('returns null when no API key is configured (no network call)', async () => {
     vi.stubEnv('VITE_GEMINI_API_KEY', '')
     global.fetch = vi.fn()
-    const result = await getGeminiPicks(candidates, [], [])
+    const result = await getGeminiPicks(candidates, [], {})
     expect(result).toBeNull()
     expect(global.fetch).not.toHaveBeenCalled()
   })
@@ -129,7 +136,7 @@ describe('getGeminiPicks (dormant — kept working for reactivation)', () => {
         candidates: [{ content: { parts: [{ text: JSON.stringify({ picks: validPicks }) }] } }],
       }),
     })
-    const result = await getGeminiPicks(threeCandidates, [], [])
+    const result = await getGeminiPicks(threeCandidates, [], {})
     expect(result).toHaveLength(3)
     expect(result[0].restaurant.tags.name).toBe('Le Petit Gaulois')
   })
@@ -137,7 +144,7 @@ describe('getGeminiPicks (dormant — kept working for reactivation)', () => {
   it('returns null when the API responds with an error (e.g. quota exceeded)', async () => {
     vi.stubEnv('VITE_GEMINI_API_KEY', 'test-key')
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 429 })
-    const result = await getGeminiPicks(candidates, [], [])
+    const result = await getGeminiPicks(candidates, [], {})
     expect(result).toBeNull()
   })
 })
@@ -154,7 +161,7 @@ describe('getAIPicks (entry point)', () => {
       ok: true,
       json: async () => ({ choices: [{ message: { content: JSON.stringify({ picks: validPicks }) } }] }),
     })
-    const result = await getAIPicks(threeCandidates, [], [])
+    const result = await getAIPicks(threeCandidates, [], {})
     expect(result).toHaveLength(3)
   })
 })
