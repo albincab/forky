@@ -30,9 +30,15 @@ export default function App() {
   // localStorage (not sessionStorage) → persists after closing the browser tab
   useEffect(() => {
     async function init() {
-      // Check for ?code= URL param first
+      // Check for ?code= or ?guide= URL param first
       const params  = new URLSearchParams(window.location.search)
       const urlCode = params.get('code')
+
+      // Shareable direct link to the guide — bypasses session restore entirely
+      if (params.has('guide')) {
+        setScreen('guide')
+        return
+      }
 
       const storedCode = localStorage.getItem('atable_code')
       const storedUid  = localStorage.getItem('atable_uid')
@@ -167,12 +173,21 @@ export default function App() {
           onCreate={() => setScreen('create')}
           onJoin={goJoin}
           onMyLunches={() => setScreen('mylunches')}
-          onGuide={() => setScreen('guide')}
+          onGuide={() => {
+            window.history.replaceState({}, '', `${window.location.pathname}?guide=1`)
+            setScreen('guide')
+          }}
         />
       )}
 
       {screen === 'guide' && (
-        <GuideScreen t={t} onBack={() => setScreen('home')} />
+        <GuideScreen
+          t={t}
+          onBack={() => {
+            window.history.replaceState({}, '', window.location.pathname)
+            setScreen('home')
+          }}
+        />
       )}
 
       {screen === 'create' && (
