@@ -5,11 +5,17 @@
 // Server-to-server calls aren't subject to CORS at all, so this proxy makes
 // the mirror fallback reliable and gives the browser a same-origin response.
 
+// overpass-api.de first: the only mirror that reliably accepts our requests
+// (openstreetmap.fr returns 403 "white-listed usages only", kumi.systems is
+// currently unreachable) — kept as fallbacks in case they recover.
 const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
   'https://overpass.openstreetmap.fr/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
 ]
+// Overpass' usage policy requires a descriptive User-Agent; requests without
+// one are rejected (406/429) by all three mirrors.
+const USER_AGENT = 'ATable/1.0 (+https://forky-seven.vercel.app; contact: albin.cabut@thuasne.fr)'
 // Kept low: 3 mirrors tried sequentially worst-case must stay under Vercel's
 // default 10s serverless function duration limit (3 × 3s = 9s).
 const OVERPASS_TIMEOUT_MS = 3000
@@ -33,7 +39,10 @@ export default async function handler(req, res) {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': USER_AGENT,
+        },
         body: `data=${encodeURIComponent(query)}`,
         signal: controller.signal,
       })
