@@ -162,4 +162,71 @@ export default {
     'Œufs': '🥚', 'Crustacés': '🦞', 'Soja': '🫘', 'Halal': '☪️',
     'Végétarien': '🌱', 'Végétalien': '🌿',
   },
+
+  // Guide screen
+  guideLink: 'Guide',
+  guideTitle: 'Guide',
+  guideIntro: 'Fini les « on mange où ? » qui durent 20 minutes. Chacun donne ses envies, l\'appli propose 3 restaurants qui conviennent au groupe.',
+  guideHowTitle: 'Comment ça marche',
+  guideHowOrganizer: [
+    { title: 'Crée une session', desc: 'publique ou privée, reçoit un code à 4 caractères' },
+    { title: 'Partage le code', desc: 'par Teams, QR code, ou lien direct' },
+    { title: 'Suit la salle d\'attente', desc: 'voit qui a rempli ses préférences' },
+    { title: 'Lance la recherche', desc: 'reçoit 3 restaurants adaptés au groupe' },
+  ],
+  guideHowParticipant: [
+    { title: 'Rejoint', desc: 'avec le code reçu, ou une session publique visible sur l\'accueil' },
+    { title: 'Indique ses envies', desc: 'cuisine, budget, allergies — sauté si "gamelle"' },
+    { title: 'Attend', desc: 'l\'écran se met à jour tout seul, rien à rafraîchir' },
+    { title: 'Consulte les résultats', desc: '3 restaurants, avec adresse' },
+  ],
+  guideFeaturesTitle: 'Fonctionnalités clés',
+  guideFeatures: [
+    { icon: '🔒', title: 'Public ou privé', desc: 'Une session privée n\'est visible qu\'avec le code. Une session publique apparaît sur l\'accueil pour que n\'importe qui la rejoigne sans code.' },
+    { icon: '🍽️', title: 'Plusieurs modes de repas', desc: 'Sortir manger ou rester sur place (gamelle) — chacun choisit, la recherche s\'adapte au mode dominant du groupe.' },
+    { icon: '⚠️', title: 'Allergies impératives', desc: 'Chaque restaurant proposé tient compte des allergies déclarées par les participants concernés.' },
+    { icon: '💶', title: 'Budget le plus restrictif', desc: 'Si le groupe a des budgets différents, l\'appli retient le plus bas pour que tout le monde s\'y retrouve.' },
+    { icon: '📋', title: 'Mes déjeuners', desc: 'Historique personnel de vos sessions créées ou rejointes sur cet appareil.' },
+    { icon: '🌍', title: 'Midi du jour', desc: 'Les sessions publiques ouvertes par d\'autres en ce moment — rejoignez-en une sans code.' },
+  ],
+  guideLimitsTitle: 'Limites côté API',
+  guideLimitsIntro: 'L\'appli est volontairement bâtie à 0€ : pas de clé API, pas de carte bancaire, pas d\'infrastructure à payer. Ce choix a des contreparties, assumées et en partie compensées.',
+  guideLimits: [
+    {
+      severity: '🟡',
+      title: 'La recherche de restaurants dépend d\'un service bénévole',
+      desc: 'Les données viennent d\'OpenStreetMap (via l\'API Overpass), une base collaborative et gratuite — sans garantie de disponibilité. Sous forte charge, une recherche peut échouer occasionnellement.',
+      mitigation: 'Un cache interne mémorise les résultats 7 jours par zone : après la première recherche réussie dans un secteur, les suivantes ne dépendent plus du tout d\'Overpass.',
+    },
+    {
+      severity: '🟢',
+      title: 'Pas de notes, avis ou photos',
+      desc: 'Contrairement à Google Maps, la fiche restaurant contient seulement nom, cuisine, adresse — l\'information disponible dans OpenStreetMap, qui varie selon la zone.',
+    },
+    {
+      severity: '🟢',
+      title: 'Pas de compte, données liées à l\'appareil',
+      desc: '"Mes déjeuners" lit l\'historique stocké dans ce navigateur. Changer d\'appareil fait perdre cet historique — mais un code de session reste valable pour rejoindre depuis n\'importe où.',
+    },
+    {
+      severity: '🟢',
+      title: 'Salle d\'attente en sondage, pas en push',
+      desc: 'L\'écran se met à jour automatiquement, mais par rafraîchissement périodique — pas de notification si l\'app est fermée.',
+    },
+  ],
+  guideFaqTitle: 'Questions fréquentes',
+  guideFaq: [
+    { q: 'La recherche affiche une erreur, que faire ?', a: 'Relancez simplement la recherche — le service de données est gratuit et occasionnellement surchargé. Une fois qu\'une recherche a réussi dans votre secteur, les suivantes sont quasi instantanées pendant 7 jours.' },
+    { q: 'Puis-je changer mes préférences après les avoir envoyées ?', a: 'Oui, tant que l\'organisateur n\'a pas lancé la recherche — via "Mes déjeuners" ou directement dans la salle d\'attente.' },
+    { q: 'Qui peut voir une session privée ?', a: 'Seules les personnes ayant reçu le code à 4 caractères. Elle n\'apparaît jamais dans "Midi du jour".' },
+    { q: 'Les sessions sont-elles supprimées automatiquement ?', a: 'Les sessions publiques sont nettoyées après 24h. Les sessions privées restent jusqu\'à suppression manuelle par l\'organisateur.' },
+  ],
+  guideRoadmapTitle: 'Pas encore prévu',
+  guideRoadmap: [
+    'Authentification / comptes utilisateurs',
+    'Notifications push',
+    'Historique de sessions au-delà de l\'appareil courant',
+    'Vote par veto sur les restaurants proposés',
+    'Intégration calendrier',
+  ],
 }

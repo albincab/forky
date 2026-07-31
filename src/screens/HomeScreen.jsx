@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getPublicSessions } from '../services/sessionService.js'
 import AppLogo from '../components/AppLogo.jsx'
 
-export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
+export default function HomeScreen({ t, onCreate, onJoin, onMyLunches, onGuide }) {
   const [publicSessions, setPublicSessions] = useState([])
 
   async function refresh() {
@@ -110,8 +110,17 @@ export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
         marginTop: 'auto',
         borderTop: '1.5px solid var(--ink)',
         paddingTop: 10,
-        textAlign: 'right',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
       }}>
+        <button
+          className="eyebrow"
+          onClick={onGuide}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--red)' }}
+        >
+          ❓ {t.guideLink}
+        </button>
         <span className="eyebrow">v{__APP_VERSION__}</span>
       </div>
     </div>

@@ -8,6 +8,7 @@ import PreferencesScreen from './screens/PreferencesScreen.jsx'
 import WaitingRoomScreen from './screens/WaitingRoomScreen.jsx'
 import ResultsScreen from './screens/ResultsScreen.jsx'
 import MyLunchesScreen from './screens/MyLunchesScreen.jsx'
+import GuideScreen from './screens/GuideScreen.jsx'
 
 export default function App() {
   const [lang] = useState(() => detectLang())
@@ -166,7 +167,12 @@ export default function App() {
           onCreate={() => setScreen('create')}
           onJoin={goJoin}
           onMyLunches={() => setScreen('mylunches')}
+          onGuide={() => setScreen('guide')}
         />
+      )}
+
+      {screen === 'guide' && (
+        <GuideScreen t={t} onBack={() => setScreen('home')} />
       )}
 
       {screen === 'create' && (

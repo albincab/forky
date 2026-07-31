@@ -162,4 +162,71 @@ export default {
     'Œufs': '🥚', 'Crustacés': '🦞', 'Soja': '🫘', 'Halal': '☪️',
     'Végétarien': '🌱', 'Végétalien': '🌿',
   },
+
+  // Guide screen
+  guideLink: 'Guide',
+  guideTitle: 'Guide',
+  guideIntro: 'No more 20-minute "where should we eat?" debates. Everyone shares what they want, the app suggests 3 restaurants that work for the group.',
+  guideHowTitle: 'How it works',
+  guideHowOrganizer: [
+    { title: 'Create a session', desc: 'public or private, get a 4-character code' },
+    { title: 'Share the code', desc: 'via Teams, QR code, or direct link' },
+    { title: 'Watch the waiting room', desc: 'see who has filled in their preferences' },
+    { title: 'Launch the search', desc: 'get 3 restaurants that fit the group' },
+  ],
+  guideHowParticipant: [
+    { title: 'Join', desc: 'with the code you received, or a public session shown on the home screen' },
+    { title: 'Share your preferences', desc: 'cuisine, budget, allergies — skipped if "eating in"' },
+    { title: 'Wait', desc: 'the screen updates itself, nothing to refresh' },
+    { title: 'Check the results', desc: '3 restaurants, with address' },
+  ],
+  guideFeaturesTitle: 'Key features',
+  guideFeatures: [
+    { icon: '🔒', title: 'Public or private', desc: 'A private session is only visible with the code. A public session shows up on the home screen so anyone can join without one.' },
+    { icon: '🍽️', title: 'Several meal modes', desc: 'Eating out or staying in — everyone picks, and the search adapts to the group\'s dominant mode.' },
+    { icon: '⚠️', title: 'Allergies always respected', desc: 'Every suggested restaurant accounts for the allergies declared by the participants concerned.' },
+    { icon: '💶', title: 'Most restrictive budget wins', desc: 'If the group has different budgets, the app keeps the lowest one so everyone is comfortable.' },
+    { icon: '📋', title: 'My lunches', desc: 'Your personal history of sessions created or joined on this device.' },
+    { icon: '🌍', title: "Today's lunches", desc: 'Public sessions started by others right now — join one without a code.' },
+  ],
+  guideLimitsTitle: 'API limitations',
+  guideLimitsIntro: 'The app is deliberately built for €0: no API key, no credit card, no infrastructure to pay for. That choice has trade-offs, acknowledged here and partly mitigated.',
+  guideLimits: [
+    {
+      severity: '🟡',
+      title: 'Restaurant search depends on a volunteer-run service',
+      desc: 'Data comes from OpenStreetMap (via the Overpass API), a free collaborative database with no uptime guarantee. Under heavy load, a search can occasionally fail.',
+      mitigation: 'An internal cache stores results for 7 days per area: after the first successful search in a given area, later ones no longer depend on Overpass at all.',
+    },
+    {
+      severity: '🟢',
+      title: 'No ratings, reviews, or photos',
+      desc: 'Unlike Google Maps, a restaurant card only has name, cuisine, and address — whatever OpenStreetMap has, which varies by area.',
+    },
+    {
+      severity: '🟢',
+      title: 'No account, data tied to the device',
+      desc: '"My lunches" reads history stored in this browser. Switching devices loses that history — but a session code still works to join from anywhere.',
+    },
+    {
+      severity: '🟢',
+      title: 'Polling-based waiting room, no push',
+      desc: 'The screen updates itself automatically, but via periodic polling — no notification if the app is closed.',
+    },
+  ],
+  guideFaqTitle: 'FAQ',
+  guideFaq: [
+    { q: 'The search shows an error, what should I do?', a: 'Just relaunch the search — the data service is free and occasionally overloaded. Once a search has succeeded in your area, later ones are near-instant for 7 days.' },
+    { q: 'Can I change my preferences after submitting them?', a: 'Yes, as long as the organizer hasn\'t launched the search yet — via "My lunches" or directly in the waiting room.' },
+    { q: 'Who can see a private session?', a: 'Only people who received the 4-character code. It never shows up in "Today\'s lunches".' },
+    { q: 'Are sessions deleted automatically?', a: 'Public sessions are cleaned up after 24h. Private sessions stay until the organizer deletes them manually.' },
+  ],
+  guideRoadmapTitle: 'Not yet planned',
+  guideRoadmap: [
+    'Authentication / user accounts',
+    'Push notifications',
+    'Session history beyond the current device',
+    'Veto voting on suggested restaurants',
+    'Calendar integration',
+  ],
 }

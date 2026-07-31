@@ -1018,3 +1018,94 @@ p  { color: var(--mute); font-size: 0.9rem; }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .screen { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 }
+
+/* ─── Guide screen ────────────────────────────────────────────────────────── */
+.guide-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.guide-lane {
+  border: 1.5px solid var(--ink);
+  background: var(--bg);
+}
+.guide-lane-head {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 12px;
+  border-bottom: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+.guide-lane-steps { padding: 10px 12px; }
+.guide-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+.guide-step + .guide-step { border-top: 1px dashed var(--mute); }
+.guide-step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+  flex: none;
+  width: 16px;
+}
+.guide-step-txt { font-size: 13px; }
+.guide-step-txt b { display: block; font-size: 14px; }
+
+.guide-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 480px) {
+  .guide-grid2 { grid-template-columns: 1fr; }
+}
+
+.guide-limit {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.guide-limit-sev { font-size: 16px; flex: none; }
+.guide-mitigation {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success);
+  margin-top: 4px;
+}
+
+.guide-faq-item {
+  border: 1.5px solid var(--ink);
+  background: var(--bg);
+  padding: 0;
+}
+.guide-faq-item summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  list-style: none;
+}
+.guide-faq-item summary::-webkit-details-marker { display: none; }
+.guide-faq-item summary::before { content: '▸ '; color: var(--red); }
+.guide-faq-item[open] summary::before { content: '▾ '; }
+.guide-faq-item p {
+  padding: 0 14px 14px;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.guide-roadmap {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--mute);
+}
+.guide-roadmap li { margin-bottom: 6px; }
