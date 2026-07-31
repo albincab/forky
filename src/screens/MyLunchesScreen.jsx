@@ -172,6 +172,7 @@ export default function MyLunchesScreen({ t, onBack, onRejoin, onEdit }) {
       </div>
 
       <h1>{t.myLunchesTitle}</h1>
+      <p className="eyebrow" style={{ marginTop: -10 }}>{t.myLunchesSubtitle}</p>
 
       {loading ? (
         <div className="spinner-wrap">

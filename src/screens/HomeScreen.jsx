@@ -61,13 +61,14 @@ export default function HomeScreen({ t, onCreate, onJoin, onMyLunches }) {
 
       {/* Sessions header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div className="display" style={{ fontSize: 22 }}>Midi du jour</div>
+        <div className="display" style={{ fontSize: 22 }}>{t.publicSessionsTitle}</div>
         <span className="eyebrow">
           {publicSessions.length > 0
             ? `● ${publicSessions.length} session${publicSessions.length > 1 ? 's' : ''} live`
             : '○ aucune session'}
         </span>
       </div>
+      <p className="eyebrow" style={{ marginTop: -6 }}>{t.publicSessionsSubtitle}</p>
 
       {/* Public sessions as menu-rows */}
       {publicSessions.length > 0 ? (
