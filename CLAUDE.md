@@ -65,7 +65,7 @@ atable_organizer → 'true'|'false'
 | Fichier | Rôle |
 |---|---|
 | `src/services/sessionService.js` | Toutes les lectures/écritures localStorage |
-| `src/services/claudeService.js` | Recherche restaurants OSM/Overpass via le proxy `api/overpass.js` |
+| `src/services/claudeService.js` | Recherche restaurants OSM/Overpass, avec cache Supabase (`restaurants_cache`, ~5km, 7 jours) pour ne dépendre d'Overpass qu'au premier appel par zone |
 | `api/overpass.js` | Fonction serverless Vercel — relaie les requêtes Overpass côté serveur (évite les erreurs CORS des miroirs publics) |
 | `src/screens/PreferencesScreen.jsx` | Stepper 4 étapes (skip étapes 2-3 si "gamelle") |
 | `src/screens/WaitingRoomScreen.jsx` | Polling 3s + déclenchement recherche IA |

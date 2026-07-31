@@ -56,3 +56,24 @@ alter table public.participants  replica identity full;
 -- (or run the two lines below if using CLI)
 -- insert into supabase_realtime.subscription (entity) values ('public.sessions');
 -- insert into supabase_realtime.subscription (entity) values ('public.participants');
+
+-- ============================================================
+-- Migration — Restaurant search cache
+-- Caches the raw Overpass (OpenStreetMap) result per ~5km area so a search
+-- doesn't have to call the (free, rate-limited, no-SLA) Overpass API live
+-- every time. Run this block if your database already exists.
+-- ============================================================
+create table if not exists public.restaurants_cache (
+  lat_bucket   numeric     not null,
+  lon_bucket   numeric     not null,
+  restaurants  jsonb       not null,
+  fetched_at   timestamptz not null default now(),
+  primary key (lat_bucket, lon_bucket)
+);
+
+alter table public.restaurants_cache enable row level security;
+
+drop policy if exists "anon_all_restaurants_cache" on public.restaurants_cache;
+create policy "anon_all_restaurants_cache"
+  on public.restaurants_cache for all
+  to anon, authenticated using (true) with check (true);

@@ -4,13 +4,21 @@
 // CORS headers on non-200 responses (rate-limit/timeout), which the browser
 // then reports as an opaque CORS error. A server-side proxy sidesteps CORS
 // entirely and keeps the multi-mirror fallback working.
+//
+// Even proxied, Overpass is a free, best-effort, rate-limited public API with
+// no SLA — calling it live on every search is inherently unreliable. Results
+// are cached in Supabase per ~5km area (`restaurants_cache`) so a search only
+// needs Overpass to be up the first time a given area is searched; every
+// later search in that area reads the cache and never depends on Overpass.
+import { supabase } from './supabaseClient.js'
 
 // Fallback: Rue Édouard Martel, Saint-Étienne (42100)
 const FALLBACK_LOCATION = { lat: 45.4165, lon: 4.3808 }
-const SEARCH_RADIUS = 1500 // metres
+const SEARCH_RADIUS = 5000 // metres — wide, since the pool is cached rather than re-fetched per search
 
 const OVERPASS_PROXY_TIMEOUT_MS = 12000
 const RECOMMENDATIONS_TIMEOUT_MS = 30000
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days — restaurants near an office barely change
 
 // Map French cuisine names to OSM cuisine tag values (regex-compatible)
 const CUISINE_OSM_TAGS = {
@@ -73,16 +81,50 @@ function buildWhy(tags, topCuisines) {
   return parts.join(' · ') || 'Sélectionné parmi les restaurants du quartier'
 }
 
-function buildQuery(cuisineTags, mode, location) {
-  const cuisineFilter = cuisineTags ? `["cuisine"~"${cuisineTags}",i]` : ''
-  const takeoutFilter = mode === 'takeout' ? '["takeaway"~"yes|only"]' : ''
+function buildQuery(location) {
   const { lat, lon } = location
   return `[out:json][timeout:25];
 (
-  node["amenity"="restaurant"]${cuisineFilter}${takeoutFilter}(around:${SEARCH_RADIUS},${lat},${lon});
-  way["amenity"="restaurant"]${cuisineFilter}${takeoutFilter}(around:${SEARCH_RADIUS},${lat},${lon});
+  node["amenity"="restaurant"](around:${SEARCH_RADIUS},${lat},${lon});
+  way["amenity"="restaurant"](around:${SEARCH_RADIUS},${lat},${lon});
 );
 out body center;`
+}
+
+/** Rounds a location to a ~5km grid cell used as the cache key */
+function toBucket({ lat, lon }) {
+  return { lat: Math.round(lat * 10) / 10, lon: Math.round(lon * 10) / 10 }
+}
+
+async function getCachedPool(bucket) {
+  const { data } = await supabase
+    .from('restaurants_cache')
+    .select('restaurants, fetched_at')
+    .eq('lat_bucket', bucket.lat)
+    .eq('lon_bucket', bucket.lon)
+    .maybeSingle()
+  return data
+}
+
+async function saveCachedPool(bucket, restaurants) {
+  await supabase.from('restaurants_cache').upsert({
+    lat_bucket: bucket.lat,
+    lon_bucket: bucket.lon,
+    restaurants,
+    fetched_at: new Date().toISOString(),
+  })
+}
+
+function filterByMode(pool, mode) {
+  if (mode !== 'takeout') return pool
+  return pool.filter(p => /yes|only/i.test(p.tags.takeaway || ''))
+}
+
+function filterByCuisine(pool, topCuisines) {
+  const pattern = topCuisines.length > 0 ? CUISINE_OSM_TAGS[topCuisines[0]] : null
+  if (!pattern) return []
+  const regex = new RegExp(pattern, 'i')
+  return pool.filter(p => p.tags.cuisine && regex.test(p.tags.cuisine))
 }
 
 /** Requests browser geolocation — resolves to {lat,lon} or fallback coords */
@@ -144,29 +186,30 @@ export async function getRecommendations(params) {
 
 async function getRecommendationsInner({ participants, mode }) {
   const topCuisines = getTopCuisines(participants)
-  const location    = await getLocation()
+  const location     = await getLocation()
+  const bucket        = toBucket(location)
 
-  let places = []
+  const cached  = await getCachedPool(bucket)
+  const isFresh = !!cached && (Date.now() - new Date(cached.fetched_at).getTime()) < CACHE_TTL_MS
 
-  // 1. Try with cuisine filter for top voted preference
-  if (topCuisines.length > 0) {
-    const tags = CUISINE_OSM_TAGS[topCuisines[0]]
-    places = await queryOverpass(buildQuery(tags, mode, location))
+  let pool
+  if (isFresh) {
+    pool = cached.restaurants
+  } else {
+    try {
+      pool = await queryOverpass(buildQuery(location))
+      await saveCachedPool(bucket, pool)
+    } catch (err) {
+      // Overpass is a free, best-effort API — prefer a stale cache over a hard failure
+      if (cached) pool = cached.restaurants
+      else throw err
+    }
   }
 
-  // 2. Fall back: no cuisine filter (keep mode filter)
-  if (places.length < 3) {
-    const broader = await queryOverpass(buildQuery(null, mode, location))
-    const seen = new Set(places.map(p => p.tags.name))
-    places = [...places, ...broader.filter(p => !seen.has(p.tags.name))]
-  }
-
-  // 3. Fall back: no cuisine, no mode filter
-  if (places.length < 3) {
-    const all = await queryOverpass(buildQuery(null, null, location))
-    const seen = new Set(places.map(p => p.tags.name))
-    places = [...places, ...all.filter(p => !seen.has(p.tags.name))]
-  }
+  // Prefer the group's top cuisine, fall back to the full (mode-filtered) pool
+  const modeFiltered   = filterByMode(pool, mode)
+  const cuisineMatched = filterByCuisine(modeFiltered, topCuisines)
+  const places = cuisineMatched.length >= 3 ? cuisineMatched : modeFiltered.length >= 3 ? modeFiltered : pool
 
   if (places.length === 0) throw new Error('EMPTY_RESULTS')
 
