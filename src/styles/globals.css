@@ -253,6 +253,8 @@ p  { color: var(--mute); font-size: 0.9rem; }
   border-radius: 0;
 }
 .iconbtn:hover, .btn-icon:hover { background: var(--yellow); }
+.iconbtn.selected, .btn-icon.selected { background: var(--ink); color: var(--bg); }
+.iconbtn.selected:hover, .btn-icon.selected:hover { background: var(--ink); }
 
 .btn-icon-row {
   display: flex;

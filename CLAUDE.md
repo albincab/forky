@@ -71,6 +71,8 @@ atable_organizer → 'true'|'false'
 | `src/screens/WaitingRoomScreen.jsx` | Polling 3s + déclenchement recherche IA |
 | `src/i18n/fr.js` et `en.js` | Toutes les chaînes traduites |
 | `src/styles/globals.css` | Design system complet (tokens CSS) |
+| `src/services/feedbackService.js` | Retours utilisateurs (bugs/idées) — table Supabase `feedback`, anti-doublon et anti-double-vote via localStorage |
+| `src/screens/FeedbackScreen.jsx` | Formulaire de feedback + liste triée par statut/votes, accessible via `?feedback=1` |
 
 ## Règles métier importantes
 - **Gamelle (inplace) et "de mon côté" (outside)** : étapes cuisines et budget sont sautées dans le stepper ; ces deux modes sont exclus des recherches de restaurant (même traitement, libellé différent pour le décompte de l'organisateur)

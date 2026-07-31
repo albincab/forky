@@ -9,6 +9,7 @@ import WaitingRoomScreen from './screens/WaitingRoomScreen.jsx'
 import ResultsScreen from './screens/ResultsScreen.jsx'
 import MyLunchesScreen from './screens/MyLunchesScreen.jsx'
 import GuideScreen from './screens/GuideScreen.jsx'
+import FeedbackScreen from './screens/FeedbackScreen.jsx'
 
 export default function App() {
   const [lang] = useState(() => detectLang())
@@ -37,6 +38,10 @@ export default function App() {
       // Shareable direct link to the guide — bypasses session restore entirely
       if (params.has('guide')) {
         setScreen('guide')
+        return
+      }
+      if (params.has('feedback')) {
+        setScreen('feedback')
         return
       }
 
@@ -177,11 +182,25 @@ export default function App() {
             window.history.replaceState({}, '', `${window.location.pathname}?guide=1`)
             setScreen('guide')
           }}
+          onFeedback={() => {
+            window.history.replaceState({}, '', `${window.location.pathname}?feedback=1`)
+            setScreen('feedback')
+          }}
         />
       )}
 
       {screen === 'guide' && (
         <GuideScreen
+          t={t}
+          onBack={() => {
+            window.history.replaceState({}, '', window.location.pathname)
+            setScreen('home')
+          }}
+        />
+      )}
+
+      {screen === 'feedback' && (
+        <FeedbackScreen
           t={t}
           onBack={() => {
             window.history.replaceState({}, '', window.location.pathname)

@@ -89,3 +89,24 @@ alter table public.participants drop constraint if exists participants_meal_mode
 alter table public.participants
   add constraint participants_meal_mode_check
   check (meal_mode in ('out', 'homemade', 'takeout', 'outside'));
+
+-- ============================================================
+-- Migration — User feedback (bug reports / ideas)
+-- Run this block if your database already exists.
+-- ============================================================
+create table if not exists public.feedback (
+  id           uuid        primary key default gen_random_uuid(),
+  type         text        not null check (type in ('bug', 'idea')),
+  message      text        not null,
+  author_name  text,
+  status       text        not null default 'idea' check (status in ('idea', 'planned', 'in_progress', 'shipped')),
+  votes        int         not null default 0,
+  created_at   timestamptz not null default now()
+);
+
+alter table public.feedback enable row level security;
+
+drop policy if exists "anon_all_feedback" on public.feedback;
+create policy "anon_all_feedback"
+  on public.feedback for all
+  to anon, authenticated using (true) with check (true);

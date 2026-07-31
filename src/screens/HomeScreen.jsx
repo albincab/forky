@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getPublicSessions } from '../services/sessionService.js'
 import AppLogo from '../components/AppLogo.jsx'
 
-export default function HomeScreen({ t, onCreate, onJoin, onMyLunches, onGuide }) {
+export default function HomeScreen({ t, onCreate, onJoin, onMyLunches, onGuide, onFeedback }) {
   const [publicSessions, setPublicSessions] = useState([])
 
   async function refresh() {
@@ -114,13 +114,22 @@ export default function HomeScreen({ t, onCreate, onJoin, onMyLunches, onGuide }
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <button
-          className="eyebrow"
-          onClick={onGuide}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--red)' }}
-        >
-          ❓ {t.guideLink}
-        </button>
+        <div style={{ display: 'flex', gap: 14 }}>
+          <button
+            className="eyebrow"
+            onClick={onGuide}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--red)' }}
+          >
+            ❓ {t.guideLink}
+          </button>
+          <button
+            className="eyebrow"
+            onClick={onFeedback}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--red)' }}
+          >
+            💬 {t.feedbackLink}
+          </button>
+        </div>
         <span className="eyebrow">v{__APP_VERSION__}</span>
       </div>
     </div>
