@@ -41,6 +41,15 @@
 
 html, body {
   height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar { width: 8px; }
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: transparent; }
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border: 2px solid var(--bg);
+  background-clip: padding-box;
 }
 
 body {
@@ -78,7 +87,17 @@ body {
   gap: 16px;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
 }
+.screen::-webkit-scrollbar { width: 8px; }
+.screen::-webkit-scrollbar-track { background: transparent; }
+.screen::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border: 2px solid var(--bg);
+  background-clip: padding-box;
+}
+.screen::-webkit-scrollbar-thumb:hover { background: var(--red); }
 
 @keyframes screenIn {
   from { opacity: 0; transform: translateY(6px); }
