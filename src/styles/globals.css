@@ -640,9 +640,12 @@ p  { color: var(--mute); font-size: 0.9rem; }
   text-decoration: none;
   cursor: pointer;
   transition: opacity var(--transition);
-  color: inherit;
+  color: var(--red);
+  font-weight: 600;
 }
-.restaurant-address-link:hover { opacity: 0.75; }
+.restaurant-address-link:hover { opacity: 0.75; text-decoration: underline; }
+.resto.top .restaurant-address-link,
+.restaurant-card.top-pick .restaurant-address-link { color: var(--yellow); }
 
 /* ─── Progress bar segmentée ──────────────────────────────────────────────── */
 .progress-bar {

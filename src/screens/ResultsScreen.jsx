@@ -48,7 +48,6 @@ function RestoCard({ restaurant, index, t }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={adresse ? `Ouvrir ${adresse} dans Google Maps` : `Ouvrir ${name} dans Google Maps`}
-          style={{ color: 'inherit' }}
         >
           📍 {adresse || 'Voir sur Google Maps'} ↗
         </a>
@@ -59,7 +58,6 @@ function RestoCard({ restaurant, index, t }) {
               className="restaurant-address-link"
               href={`tel:${telephone.replace(/\s+/g, '')}`}
               aria-label={`Appeler ${name} au ${telephone}`}
-              style={{ color: 'inherit' }}
             >
               📞 {telephone}
             </a>
