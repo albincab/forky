@@ -98,6 +98,12 @@ VITE_CLAUDE_API_KEY=sk-ant-...
 ```
 ⚠️ Exposée dans le bundle (prototype). Pour production : proxy backend.
 
+## Variable d'environnement optionnelle — filtrage IA budget/allergies
+```
+VITE_GEMINI_API_KEY=AIzaSy...
+```
+Gratuite (Google AI Studio, sans carte bancaire). Utilisée dans `claudeService.js` (`getGeminiPicks`) pour faire choisir à Gemini Flash 3 restaurants parmi le pool OSM en tenant compte du budget le plus restrictif et des allergies du groupe — chose que la sélection algorithmique seule ne fait pas (elle ne filtre que sur cuisine + mode). Sans clé, ou si le quota gratuit est dépassé (HTTP 429) ou l'appel échoue/timeout, repli automatique et silencieux sur la sélection algorithmique existante — jamais d'erreur visible pour l'utilisateur.
+
 ## Commandes
 ```bash
 npm run dev      # Développement

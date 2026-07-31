@@ -4,7 +4,7 @@ import RestaurantMap from '../components/RestaurantMap.jsx'
 
 // Single restaurant card — Affiche style
 function RestoCard({ restaurant, index, t }) {
-  const { name, cuisine, adresse, telephone, budget, note, pourquoi } = restaurant
+  const { name, cuisine, adresse, telephone, budget, note, pourquoi, aiPicked } = restaurant
   const isTop = index === 0
   const num = String(index + 1).padStart(2, '0')
 
@@ -34,7 +34,10 @@ function RestoCard({ restaurant, index, t }) {
       </div>
 
       {/* Name */}
-      <div className="resto-name">{name}</div>
+      <div className="resto-name">
+        {name}
+        {aiPicked && <span aria-label={t.aiPicked} title={t.aiPicked}> ✨</span>}
+      </div>
 
       {/* Meta */}
       <div className="resto-meta">

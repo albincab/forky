@@ -108,6 +108,7 @@ export default {
   sectionOut: '🍽️ Going out',
   sectionTakeout: '📦 Takeout',
   topPick: 'The wise choice',
+  aiPicked: 'Picked by AI based on your budget and allergies',
   noResults: 'No recommendations available.',
   retry: 'Retry',
   newSession: 'New lunch',
@@ -200,6 +201,12 @@ export default {
       title: 'Restaurant search depends on a volunteer-run service',
       desc: 'Data comes from OpenStreetMap (via the Overpass API), a free collaborative database with no uptime guarantee. Under heavy load, a search can occasionally fail.',
       mitigation: 'An internal cache stores results for 7 days per area: after the first successful search in a given area, later ones no longer depend on Overpass at all.',
+    },
+    {
+      severity: '🟡',
+      title: 'AI-based budget/allergy filtering depends on a free quota',
+      desc: 'When enabled, the AI (Gemini, free) refines the 3 suggested restaurants based on the group\'s most restrictive budget and allergies. That free quota is limited.',
+      mitigation: 'If the quota is exceeded or the service is unavailable, the app automatically falls back to its standard selection (cuisine + mode) — no visible error, just without that finer filtering that day.',
     },
     {
       severity: '🟢',
