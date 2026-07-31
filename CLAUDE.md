@@ -65,7 +65,8 @@ atable_organizer → 'true'|'false'
 | Fichier | Rôle |
 |---|---|
 | `src/services/sessionService.js` | Toutes les lectures/écritures localStorage |
-| `src/services/claudeService.js` | Appel API + construction prompt + parsing JSON |
+| `src/services/claudeService.js` | Recherche restaurants OSM/Overpass via le proxy `api/overpass.js` |
+| `api/overpass.js` | Fonction serverless Vercel — relaie les requêtes Overpass côté serveur (évite les erreurs CORS des miroirs publics) |
 | `src/screens/PreferencesScreen.jsx` | Stepper 4 étapes (skip étapes 2-3 si "gamelle") |
 | `src/screens/WaitingRoomScreen.jsx` | Polling 3s + déclenchement recherche IA |
 | `src/i18n/fr.js` et `en.js` | Toutes les chaînes traduites |

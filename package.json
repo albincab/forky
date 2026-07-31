@@ -1,6 +1,6 @@
 {
   "name": "atable",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Application de coordination des déjeuners en équipe — Saint-Étienne",
   "type": "module",
   "scripts": {

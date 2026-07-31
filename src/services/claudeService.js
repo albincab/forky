@@ -1,16 +1,16 @@
 // Restaurant search via OpenStreetMap Overpass API — free, no API key required
+// Requests go through /api/overpass.js (Vercel serverless proxy): calling the
+// Overpass mirrors directly from the browser is unreliable because they drop
+// CORS headers on non-200 responses (rate-limit/timeout), which the browser
+// then reports as an opaque CORS error. A server-side proxy sidesteps CORS
+// entirely and keeps the multi-mirror fallback working.
 
-// kumi.systems is the primary mirror — overpass-api.de used as fallback
-const OVERPASS_ENDPOINTS = [
-  'https://overpass.openstreetmap.fr/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-]
 // Fallback: Rue Édouard Martel, Saint-Étienne (42100)
 const FALLBACK_LOCATION = { lat: 45.4165, lon: 4.3808 }
 const SEARCH_RADIUS = 1500 // metres
 
-const OVERPASS_TIMEOUT_MS = 8000
-const RECOMMENDATIONS_TIMEOUT_MS = 20000
+const OVERPASS_PROXY_TIMEOUT_MS = 12000
+const RECOMMENDATIONS_TIMEOUT_MS = 30000
 
 // Map French cuisine names to OSM cuisine tag values (regex-compatible)
 const CUISINE_OSM_TAGS = {
@@ -98,31 +98,26 @@ function getLocation() {
 }
 
 async function queryOverpass(query) {
-  let lastError
-  for (const url of OVERPASS_ENDPOINTS) {
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS)
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(query)}`,
-        signal: controller.signal,
-      })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const data = await response.json()
-      return (data.elements || [])
-        .filter(el => el.tags?.name)
-        .map(el => ({ tags: el.tags, lat: el.center?.lat ?? el.lat, lon: el.center?.lon ?? el.lon }))
-    } catch (err) {
-      const reason = err.name === 'AbortError' ? `timeout after ${OVERPASS_TIMEOUT_MS}ms` : err.message
-      console.warn(`Overpass ${url} failed:`, reason)
-      lastError = err
-    } finally {
-      clearTimeout(timer)
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), OVERPASS_PROXY_TIMEOUT_MS)
+  try {
+    const response = await fetch('/api/overpass', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+      signal: controller.signal,
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${response.status}`)
     }
+    const data = await response.json()
+    return (data.elements || [])
+      .filter(el => el.tags?.name)
+      .map(el => ({ tags: el.tags, lat: el.center?.lat ?? el.lat, lon: el.center?.lon ?? el.lon }))
+  } finally {
+    clearTimeout(timer)
   }
-  throw lastError
 }
 
 // Prefer entries with more OSM tags (richer data = more active listing)
