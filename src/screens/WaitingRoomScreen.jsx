@@ -119,6 +119,7 @@ export default function WaitingRoomScreen({
   const prefsTotal    = participants.length
   const outCount      = participants.filter(p => p.mealMode === 'out').length
   const inplaceCount  = participants.filter(p => p.mealMode === 'inplace').length
+  const outsideCount  = participants.filter(p => p.mealMode === 'outside').length
 
   return (
     <div className="screen">
@@ -175,6 +176,12 @@ export default function WaitingRoomScreen({
           <div className="group-pill">
             <b>{inplaceCount}</b>
             <span>🏠 gamelle</span>
+          </div>
+        )}
+        {outsideCount > 0 && (
+          <div className="group-pill">
+            <b>{outsideCount}</b>
+            <span>🚶 de leur côté</span>
           </div>
         )}
         <div className="group-pill" style={{ background: 'var(--yellow)', color: 'var(--ink)', marginLeft: 'auto' }}>

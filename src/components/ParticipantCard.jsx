@@ -1,6 +1,6 @@
 // Affiche-style participant card — pcard grid pattern
 
-const MEAL_ICONS = { out: '🍽️', inplace: '🏠', takeout: '📦' }
+const MEAL_ICONS = { out: '🍽️', inplace: '🏠', outside: '🚶', takeout: '📦' }
 
 export default function ParticipantCard({ participant, t }) {
   const { name, isOrganizer, mealMode, cuisines, budget, allergies, prefsComplete } = participant
@@ -9,12 +9,14 @@ export default function ParticipantCard({ participant, t }) {
   const modeLabel = {
     out:     t.mealOut,
     inplace: t.mealInPlace,
+    outside: t.mealOutside,
     takeout: t.mealTakeout,
   }[mealMode] || '…'
 
   const modeTagClass = {
     out:     'tag-out',
     inplace: 'tag-homemade',
+    outside: 'tag-homemade',
     takeout: 'tag-takeout',
   }[mealMode] || 'tag-homemade'
 
@@ -49,7 +51,7 @@ export default function ParticipantCard({ participant, t }) {
           )}
 
           {/* Budget */}
-          {budget && mealMode !== 'inplace' && (
+          {budget && mealMode !== 'inplace' && mealMode !== 'outside' && (
             <span className="tag tag-cuisine">{t.budgetOptions[budget]}</span>
           )}
 

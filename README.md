@@ -98,7 +98,8 @@ src/
 | Mode | Icône | Comportement |
 |---|---|---|
 | **Je sors manger** | 🍽️ | Participe à la recherche restaurant (sur place) |
-| **J'ai ma gamelle** | 🥡 | Visible dans la salle d'attente, exclu des recherches |
+| **Je reste sur place** | 🏠 | Visible dans la salle d'attente, exclu des recherches |
+| **Je mange de mon côté** | 🚶 | Pas avec le groupe, exclu des recherches (même traitement que "sur place") |
 | **À emporter** | 📦 | Recherche restaurant avec option emporter/livraison |
 
 Si le groupe contient "Je sors" **et** "À emporter", deux recherches indépendantes sont proposées.

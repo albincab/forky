@@ -44,7 +44,7 @@ Pas de React Router. L'URL `?code=XXXX` pré-remplit le champ code sur l'écran 
   id: string,             // UUID
   name: string,
   isOrganizer: boolean,
-  mealMode: 'out'|'homemade'|'takeout'|null,
+  mealMode: 'out'|'inplace'|'outside'|null,  // stored in Supabase as 'out'|'homemade'|'outside', remapped by sessionService.js
   cuisines: string[],     // vide si homemade
   budget: '<15'|'15-30'|'30-50'|'>50'|null,
   allergies: string[],
@@ -73,7 +73,7 @@ atable_organizer → 'true'|'false'
 | `src/styles/globals.css` | Design system complet (tokens CSS) |
 
 ## Règles métier importantes
-- **Gamelle (homemade)** : étapes cuisines et budget sont sautées dans le stepper ; ce participant est exclu des recherches IA
+- **Gamelle (inplace) et "de mon côté" (outside)** : étapes cuisines et budget sont sautées dans le stepper ; ces deux modes sont exclus des recherches de restaurant (même traitement, libellé différent pour le décompte de l'organisateur)
 - **Deux recherches indépendantes** : si le groupe mélange "out" + "takeout", l'organisateur déclenche les deux séparément
 - **Allergies impératives** : chaque section de résultats n'inclut que les allergies des participants concernés
 - **Budget le plus restrictif** : le prompt IA prend le budget minimum parmi tous les participants du groupe

@@ -25,7 +25,7 @@ create table if not exists public.participants (
   session_code   text        not null references public.sessions(code) on delete cascade,
   name           text        not null,
   is_organizer   boolean     not null default false,
-  meal_mode      text        check (meal_mode in ('out', 'homemade', 'takeout')),
+  meal_mode      text        check (meal_mode in ('out', 'homemade', 'takeout', 'outside')),
   cuisines       text[]      not null default '{}',
   budget         text,
   allergies      text[]      not null default '{}',
@@ -77,3 +77,15 @@ drop policy if exists "anon_all_restaurants_cache" on public.restaurants_cache;
 create policy "anon_all_restaurants_cache"
   on public.restaurants_cache for all
   to anon, authenticated using (true) with check (true);
+
+-- ============================================================
+-- Migration — "Eating on my own" meal mode
+-- Adds 'outside' to the allowed meal_mode values (participant eats away
+-- from the group, excluded from the restaurant search — like 'homemade'
+-- but distinct for headcount clarity). Run this block if your database
+-- already exists.
+-- ============================================================
+alter table public.participants drop constraint if exists participants_meal_mode_check;
+alter table public.participants
+  add constraint participants_meal_mode_check
+  check (meal_mode in ('out', 'homemade', 'takeout', 'outside'));

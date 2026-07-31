@@ -7,7 +7,9 @@ import {
   removeFromHistory,
 } from '../services/sessionService.js'
 
-const MEAL_ICONS = { out: '🍽️', inplace: '🏠' }
+const MEAL_ICONS = { out: '🍽️', inplace: '🏠', outside: '🚶' }
+const MEAL_LABEL_KEY = { out: 'mealOut', inplace: 'mealInPlace', outside: 'mealOutside' }
+const MEAL_TAG_CLASS = { out: 'tag-out', inplace: 'tag-homemade', outside: 'tag-homemade' }
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ session, participant, t }) {
@@ -29,6 +31,7 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel, onDelete }) {
 
   const outCount      = session.participants.filter(p => p.mealMode === 'out').length
   const inplaceCount  = session.participants.filter(p => p.mealMode === 'inplace').length
+  const outsideCount  = session.participants.filter(p => p.mealMode === 'outside').length
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -62,6 +65,12 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel, onDelete }) {
             <span className="summary-item" style={{ fontSize: '0.8rem' }}>🏠 {inplaceCount}</span>
           </>
         )}
+        {outsideCount > 0 && (
+          <>
+            <span style={{ color: 'var(--text-muted)' }}>·</span>
+            <span className="summary-item" style={{ fontSize: '0.8rem' }}>🚶 {outsideCount}</span>
+          </>
+        )}
         <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginLeft: 4 }}>
           · {session.participants.length} pers.
         </span>
@@ -71,8 +80,8 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel, onDelete }) {
       {participant?.prefsComplete && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {participant.mealMode && (
-            <span className={`tag ${participant.mealMode === 'out' ? 'tag-out' : 'tag-homemade'}`}>
-              {MEAL_ICONS[participant.mealMode]} {t[participant.mealMode === 'out' ? 'mealOut' : 'mealInPlace']}
+            <span className={`tag ${MEAL_TAG_CLASS[participant.mealMode] || 'tag-homemade'}`}>
+              {MEAL_ICONS[participant.mealMode]} {t[MEAL_LABEL_KEY[participant.mealMode]] || participant.mealMode}
             </span>
           )}
           {participant.cuisines?.slice(0, 2).map(c => (

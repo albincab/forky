@@ -58,6 +58,8 @@ export default {
   mealOutDesc: 'Au restaurant avec le groupe',
   mealInPlace: 'Je reste sur place',
   mealInPlaceDesc: 'Repas perso · sans recherche',
+  mealOutside: 'Je mange de mon côté',
+  mealOutsideDesc: 'Pas avec le groupe · sans recherche',
   inPlaceMsg: 'Super, bon appétit ! 🥡',
   inPlaceSkipMsg: "Pas de recherche pour vous — on vous tient au courant !",
 
@@ -183,7 +185,7 @@ export default {
   guideFeaturesTitle: 'Fonctionnalités clés',
   guideFeatures: [
     { icon: '🔒', title: 'Public ou privé', desc: 'Une session privée n\'est visible qu\'avec le code. Une session publique apparaît sur l\'accueil pour que n\'importe qui la rejoigne sans code.' },
-    { icon: '🍽️', title: 'Plusieurs modes de repas', desc: 'Sortir manger ou rester sur place (gamelle) — chacun choisit, la recherche s\'adapte au mode dominant du groupe.' },
+    { icon: '🍽️', title: 'Trois modes de repas', desc: 'Sortir manger, rester sur place (gamelle), ou manger de son côté — chacun choisit, seul "sortir manger" participe à la recherche.' },
     { icon: '⚠️', title: 'Allergies impératives', desc: 'Chaque restaurant proposé tient compte des allergies déclarées par les participants concernés.' },
     { icon: '💶', title: 'Budget le plus restrictif', desc: 'Si le groupe a des budgets différents, l\'appli retient le plus bas pour que tout le monde s\'y retrouve.' },
     { icon: '📋', title: 'Mes déjeuners', desc: 'Historique personnel de vos sessions créées ou rejointes sur cet appareil.' },

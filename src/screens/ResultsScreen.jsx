@@ -79,6 +79,7 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
   const { results, participants } = session
   const outGroup     = participants.filter(p => p.mealMode === 'out')
   const inplaceGroup = participants.filter(p => p.mealMode === 'inplace')
+  const outsideGroup = participants.filter(p => p.mealMode === 'outside')
   const totalCount   = participants.length
   const hasAny       = results?.out?.length > 0
 
@@ -126,6 +127,15 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
             <div>
               <span className="results-group-label">Sur place</span>
               <span className="results-group-names">{inplaceGroup.map(p => p.name).join(', ')}</span>
+            </div>
+          </div>
+        )}
+        {outsideGroup.length > 0 && (
+          <div className="results-group-row">
+            <span className="results-group-icon">🚶</span>
+            <div>
+              <span className="results-group-label">De leur côté</span>
+              <span className="results-group-names">{outsideGroup.map(p => p.name).join(', ')}</span>
             </div>
           </div>
         )}

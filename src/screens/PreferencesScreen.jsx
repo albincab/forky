@@ -4,7 +4,7 @@ import { updateParticipantPrefs, getSession } from '../services/sessionService.j
 // Compute current step index 1-5 for progress bar
 function computeStep(mealMode, moreThanOneHour, backBy14h, cuisines, budget, allergies) {
   if (!mealMode) return 0
-  if (mealMode === 'inplace') return 5 // all done for gamelle
+  if (mealMode === 'inplace' || mealMode === 'outside') return 5 // all done — excluded from search
   if (!moreThanOneHour && !backBy14h) return 1
   if (cuisines.length === 0) return 2
   if (!budget) return 3
@@ -52,7 +52,7 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
     prevMealMode.current = mealMode
   }, [mealMode])
 
-  const isInPlace = mealMode === 'inplace'
+  const isExcluded = mealMode === 'inplace' || mealMode === 'outside'
 
   function toggleChip(list, setList, value) {
     setList(list.includes(value) ? list.filter(x => x !== value) : [...list, value])
@@ -69,11 +69,11 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
         participantId: userId,
         prefs: {
           mealMode,
-          cuisines:        isInPlace ? [] : cuisines,
-          budget:          isInPlace ? null : budget,
-          allergies:       isInPlace ? [] : allergies,
-          moreThanOneHour: isInPlace ? false : moreThanOneHour,
-          backBy14h:       isInPlace ? false : backBy14h,
+          cuisines:        isExcluded ? [] : cuisines,
+          budget:          isExcluded ? null : budget,
+          allergies:       isExcluded ? [] : allergies,
+          moreThanOneHour: isExcluded ? false : moreThanOneHour,
+          backBy14h:       isExcluded ? false : backBy14h,
         },
       })
       onDone()
@@ -121,6 +121,7 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
           {[
             { key: 'out',     icon: '🍽️', label: t.mealOut,     desc: t.mealOutDesc,     secondary: false },
             { key: 'inplace', icon: '🏠', label: t.mealInPlace,  desc: t.mealInPlaceDesc, secondary: true  },
+            { key: 'outside', icon: '🚶', label: t.mealOutside,  desc: t.mealOutsideDesc, secondary: true  },
           ].map(o => (
             <button
               key={o.key}
@@ -147,7 +148,7 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
         </div>
 
         {/* ── Sections visibles uniquement si "Je sors manger" ─────── */}
-        {!isInPlace && mealMode && (
+        {!isExcluded && mealMode && (
           <>
             {/* Temps de pause */}
             <div className="flex-col" style={{ gap: 10 }} ref={nextSectionRef}>

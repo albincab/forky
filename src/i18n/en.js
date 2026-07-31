@@ -58,6 +58,8 @@ export default {
   mealOutDesc: 'Restaurant with the group',
   mealInPlace: 'Staying in',
   mealInPlaceDesc: 'Packed lunch, desk or solo — no search needed',
+  mealOutside: 'Eating on my own',
+  mealOutsideDesc: 'Not with the group · no search',
   inPlaceMsg: 'Enjoy your lunch! 🥡',
   inPlaceSkipMsg: "No restaurant search for you — we'll keep you posted!",
 
@@ -183,7 +185,7 @@ export default {
   guideFeaturesTitle: 'Key features',
   guideFeatures: [
     { icon: '🔒', title: 'Public or private', desc: 'A private session is only visible with the code. A public session shows up on the home screen so anyone can join without one.' },
-    { icon: '🍽️', title: 'Several meal modes', desc: 'Eating out or staying in — everyone picks, and the search adapts to the group\'s dominant mode.' },
+    { icon: '🍽️', title: 'Three meal modes', desc: 'Eating out, staying in, or eating on your own — everyone picks, only "eating out" joins the search.' },
     { icon: '⚠️', title: 'Allergies always respected', desc: 'Every suggested restaurant accounts for the allergies declared by the participants concerned.' },
     { icon: '💶', title: 'Most restrictive budget wins', desc: 'If the group has different budgets, the app keeps the lowest one so everyone is comfortable.' },
     { icon: '📋', title: 'My lunches', desc: 'Your personal history of sessions created or joined on this device.' },
