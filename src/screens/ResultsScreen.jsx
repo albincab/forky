@@ -2,10 +2,44 @@ import { useState, useEffect } from 'react'
 import { getSession } from '../services/sessionService.js'
 import RestaurantMap from '../components/RestaurantMap.jsx'
 
+const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
+
+function getCuisineVotes(group) {
+  const votes = {}
+  group.forEach(p => (p.cuisines || []).forEach(c => { votes[c] = (votes[c] || 0) + 1 }))
+  return votes
+}
+
+function getMaxBudgetIndex(group) {
+  const indices = group.map(p => BUDGET_ORDER.indexOf(p.budget)).filter(i => i >= 0)
+  return indices.length > 0 ? Math.min(...indices) : -1
+}
+
+function scoreRestaurant(restaurant, cuisineVotes, maxBudgetIndex) {
+  let score = cuisineVotes[restaurant.cuisine] || 0
+  if (restaurant.budget) {
+    const idx = BUDGET_ORDER.indexOf(restaurant.budget)
+    if (idx >= 0 && maxBudgetIndex >= 0 && idx <= maxBudgetIndex) score += 1
+  }
+  return score
+}
+
+/** Index of the restaurant that best respects the group's cuisine votes + budget.
+ * Returns -1 (no highlight) when nothing scores above 0, or when several restaurants tie. */
+export function findTopPickIndex(restaurants, group) {
+  if (!restaurants || restaurants.length === 0) return -1
+  const cuisineVotes   = getCuisineVotes(group)
+  const maxBudgetIndex = getMaxBudgetIndex(group)
+  const scores  = restaurants.map(r => scoreRestaurant(r, cuisineVotes, maxBudgetIndex))
+  const maxScore = Math.max(...scores)
+  if (maxScore <= 0) return -1
+  const bestIndices = scores.reduce((acc, s, i) => (s === maxScore ? [...acc, i] : acc), [])
+  return bestIndices.length === 1 ? bestIndices[0] : -1
+}
+
 // Single restaurant card — Affiche style
-function RestoCard({ restaurant, index, t }) {
+function RestoCard({ restaurant, index, isTop, t }) {
   const { name, cuisine, adresse, telephone, budget, note, pourquoi, aiPicked } = restaurant
-  const isTop = index === 0
   const num = String(index + 1).padStart(2, '0')
 
   // Search by name (+ address when known) rather than raw coordinates — a
@@ -99,6 +133,7 @@ export default function ResultsScreen({ t, sessionCode, isOrganizer, onLeave, on
   const outsideGroup = participants.filter(p => p.mealMode === 'outside')
   const totalCount   = participants.length
   const hasAny       = results?.out?.length > 0
+  const topPickIndex = findTopPickIndex(results?.out, outGroup)
 
   return (
     <div className="screen">
@@ -171,7 +206,7 @@ export default function ResultsScreen({ t, sessionCode, isOrganizer, onLeave, on
       {results?.out?.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {results.out.map((r, i) => (
-            <RestoCard key={i} restaurant={r} index={i} t={t} />
+            <RestoCard key={i} restaurant={r} index={i} isTop={i === topPickIndex} t={t} />
           ))}
         </div>
       )}
