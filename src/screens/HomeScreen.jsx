@@ -18,6 +18,10 @@ function isToday(timestamp) {
   return new Date(timestamp).toDateString() === new Date().toDateString()
 }
 
+function formatDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+}
+
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ session, participant, t }) {
   if (!isToday(session.createdAt)) {
@@ -58,6 +62,9 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel, onDelete }) {
             {isOrganizer && (
               <span className="tag tag-organizer">👑 {t.youAreOrganizer}</span>
             )}
+            <span className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              📅 {formatDate(session.createdAt)}
+            </span>
           </div>
           <p style={{ marginTop: 4, fontSize: '0.82rem' }}>
             {t.organizer || 'Organisateur'} : {session.organizerName}
@@ -333,7 +340,7 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
                     <div className="meta-block">
                       <span className="name">{session.organizerName}</span>
                       <span className="sub">
-                        {session.participants.length} pers.{cuisines ? ` · ${cuisines}` : ''}
+                        {session.participants.length} pers.{cuisines ? ` · ${cuisines}` : ''} · 📅 {formatDate(session.createdAt)}
                       </span>
                     </div>
                     <span className="code-badge">#{session.code}</span>

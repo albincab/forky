@@ -44,7 +44,7 @@ export default function WaitingRoomScreen({
     if (!s) return
     setSession(s)
     if (s.results?.out?.length > 0) {
-      document.title = '🎉 Résultats disponibles — À TABLE!'
+      document.title = '🎉 Résultats disponibles · À TABLE!'
       if (!isOrganizer && autoRedirect) onResultsReady()
     }
   }, [sessionCode, isOrganizer, autoRedirect, onResultsReady])

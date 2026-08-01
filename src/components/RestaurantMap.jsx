@@ -73,7 +73,7 @@ export default function RestaurantMap({ restaurants }) {
       fontSize: 11,
       color: 'var(--mute)',
     }}>
-      📍 Carte indisponible — relance une recherche via le bouton 🔄
+      📍 Carte indisponible, relance une recherche via le bouton 🔄
     </div>
   )
 

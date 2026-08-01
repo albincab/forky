@@ -3,10 +3,9 @@ import en from './en.js'
 
 const locales = { fr, en }
 
-/** Detects browser language, falls back to English */
+/** Forced to French — the app only targets French-speaking offices for now */
 export function detectLang() {
-  const browserLang = navigator.language?.slice(0, 2).toLowerCase()
-  return browserLang === 'fr' ? 'fr' : 'en'
+  return 'fr'
 }
 
 /** Returns the translation object for the given language */
