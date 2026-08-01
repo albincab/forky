@@ -257,6 +257,7 @@ export default function App() {
         <ResultsScreen
           t={t}
           sessionCode={sessionCode}
+          isOrganizer={isOrganizer}
           onLeave={handleLeave}
           onBackToWaiting={async () => {
             if (isOrganizer) await resetResults({ code: sessionCode }).catch(() => {})

@@ -74,7 +74,7 @@ function RestoCard({ restaurant, index, t }) {
   )
 }
 
-export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting }) {
+export default function ResultsScreen({ t, sessionCode, isOrganizer, onLeave, onBackToWaiting }) {
   const [session, setSession] = useState(null)
 
   useEffect(() => {
@@ -178,13 +178,15 @@ export default function ResultsScreen({ t, sessionCode, onLeave, onBackToWaiting
 
       {/* Footer actions */}
       <div className="btn-icon-row mt-auto">
-        <button
-          className="iconbtn"
-          onClick={onBackToWaiting}
-          aria-label={t.backToWaiting || 'Retenter'}
-        >
-          🔄
-        </button>
+        {isOrganizer && (
+          <button
+            className="iconbtn"
+            onClick={onBackToWaiting}
+            aria-label={t.backToWaiting || 'Retenter'}
+          >
+            🔄
+          </button>
+        )}
         <button
           className="iconbtn"
           onClick={() => {
