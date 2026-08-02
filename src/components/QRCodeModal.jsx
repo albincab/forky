@@ -18,7 +18,7 @@ export default function QRCodeModal({ url, t, onClose }) {
           bgColor="var(--cream)"
           fgColor="var(--brown)"
           level="M"
-          aria-label={`QR code pour rejoindre la session : ${url}`}
+          aria-label={`QR code pour rejoindre la table : ${url}`}
         />
 
         <p className="text-center text-muted" style={{ fontSize: '0.8rem' }}>

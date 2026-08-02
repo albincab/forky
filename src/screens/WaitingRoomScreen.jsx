@@ -143,9 +143,9 @@ export default function WaitingRoomScreen({
         </span>
       </div>
 
-      {/* Code de session */}
+      {/* Numéro de table */}
       <div>
-        <div className="eyebrow" style={{ marginBottom: 6 }}>Code de session</div>
+        <div className="eyebrow" style={{ marginBottom: 6 }}>Numéro de table</div>
         <CodeStrip code={sessionCode} />
       </div>
 

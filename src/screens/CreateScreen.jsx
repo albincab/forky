@@ -66,7 +66,7 @@ export default function CreateScreen({ t, onBack, onCreated }) {
         </div>
 
         <hr className="rule-thick" />
-        <div className="eyebrow">— type de session —</div>
+        <div className="eyebrow">— type de table —</div>
 
         {/* Session type tiles */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
