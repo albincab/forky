@@ -5,6 +5,7 @@ export default {
   ctaCreate: 'Set the table',
   ctaJoin: 'I have the table number',
   publicSessionsTab: 'The buffets',
+  comingSoon: 'Coming soon',
   publicSessionsSubtitle: 'Open tables started by others: join one without a number',
   publicSessionsEmpty: 'No open tables yet. Start yours!',
   myLunches: 'My tables',
@@ -66,6 +67,7 @@ export default {
   // Lunch duration
   lunchDurationLabel: 'Lunch break',
   moreThanOneHour: 'I have more than 1 hour',
+  lessThanOneHour: 'Less than 1h',
   backBy14h: 'I need to be back before 2pm',
 
   // Delete session
@@ -94,7 +96,7 @@ export default {
   // Waiting room
   waitingRoomTitle: 'Waiting room',
   waitingEmpty: 'Quiet in here… share the number!',
-  waitingParticipant: "{name} will pick when everyone's in",
+  waitingParticipant: "Waiting for {name} to launch the restaurant search",
   waitingYourPrefs: 'Waiting for the organizer to launch…',
   groupSummary: '{out} going out · {inplace} staying in',
   launchSearchOut: '🍽️ Find our table',
@@ -168,9 +170,11 @@ export default {
 
   // Guide screen
   guideLink: 'Guide',
+  guideHintCta: 'See how it works',
   guideTitle: 'Guide',
   guideIntro: "No more 20-minute \"who's eating where\" debates. Everyone shares what they want, the app suggests 3 restaurants that work for the group.",
   guideHowTitle: 'How it works',
+  guideHowIntro: 'Clicking "Set the table" makes you the organizer: a fixed role that never transfers. Joining with a number makes you a participant. Only the organizer can launch (or relaunch) the restaurant search, and close the table.',
   guideHowOrganizer: [
     { title: 'Open a table', desc: 'open to all or invite-only, get a 4-digit number' },
     { title: 'Share the number', desc: 'via Teams, QR code, or direct link' },
@@ -178,7 +182,7 @@ export default {
     { title: 'Launch the search', desc: 'get 3 restaurants that fit the group' },
   ],
   guideHowParticipant: [
-    { title: 'Join', desc: 'with the number you received for an invite-only table, or from The buffets for a table open to everyone' },
+    { title: 'Join', desc: 'with the number you received' },
     { title: 'Share your preferences', desc: 'cuisine, budget, allergies (skipped if "eating in" or "eating on my own")' },
     { title: 'Wait', desc: 'the screen updates itself, nothing to refresh' },
     { title: 'Check the results', desc: '3 restaurants, with address' },
@@ -191,7 +195,7 @@ export default {
     { icon: '💶', title: 'Most restrictive budget wins (via AI)', desc: 'If the group has different budgets, the lowest one is passed to the AI as a priority when it\'s available. Without it, the budget isn\'t guaranteed among the 3 suggested restaurants.' },
     { icon: '📞', title: 'The organizer picks and books', desc: 'Each suggested restaurant includes an address and phone number, so the organizer can pick one and call to book.' },
     { icon: '📋', title: 'My tables', desc: 'Your personal history of tables created or joined on this device. Tables from another day are automatically archived: a checkbox lets you show them again.' },
-    { icon: '🌍', title: 'The buffets', desc: 'The tab listing public tables open right now, so you can join without a number (unlike an invite-only table).' },
+    { icon: '🌍', title: 'The buffets', desc: 'Coming soon.' },
     { icon: '🪑', title: 'One active table per day', desc: 'Once you already have a table today, the home screen shows "View my table" instead of "Set the table" / "I have the table number".' },
   ],
   guideLimitsTitle: 'API limitations',

@@ -5,6 +5,7 @@ export default {
   ctaCreate: 'Je mets la table',
   ctaJoin: "J'ai le numéro de table",
   publicSessionsTab: 'Les buffets',
+  comingSoon: 'Bientôt disponible',
   publicSessionsSubtitle: 'Tables ouvertes par d’autres : rejoignez-en une sans numéro',
   publicSessionsEmpty: 'Aucune table ouverte pour l’instant. Lancez la vôtre !',
   myLunches: 'Mes tables',
@@ -66,6 +67,7 @@ export default {
   // Lunch duration
   lunchDurationLabel: 'Temps de pause',
   moreThanOneHour: "J'ai plus d'1h",
+  lessThanOneHour: "Moins d'1h",
   backBy14h: 'Je dois être de retour avant 14h',
 
   // Delete session
@@ -94,7 +96,7 @@ export default {
   // Waiting room
   waitingRoomTitle: 'Salle d\'attente',
   waitingEmpty: 'C\'est calme… partage le numéro !',
-  waitingParticipant: '{name} lance la recherche',
+  waitingParticipant: 'En attente que {name} lance la recherche de restaurants',
   waitingYourPrefs: 'En attente du lancement…',
   groupSummary: '{out} qui sortent · {inplace} sur place',
   launchSearchOut: '🍽️ Trouver notre table',
@@ -168,9 +170,11 @@ export default {
 
   // Guide screen
   guideLink: 'Guide',
+  guideHintCta: 'Découvre comment ça marche',
   guideTitle: 'Guide',
   guideIntro: 'Fini les « qui mange où » qui durent 20 minutes. Chacun donne ses envies, l\'appli propose 3 restaurants qui conviennent au groupe.',
   guideHowTitle: 'Comment ça marche',
+  guideHowIntro: 'En cliquant sur « Je mets la table », tu deviens l\'organisateur : un rôle fixe qui ne se transfère pas. En rejoignant avec un numéro, tu es participant. Seul l\'organisateur peut lancer (ou relancer) la recherche de restaurants, et supprimer la table.',
   guideHowOrganizer: [
     { title: 'Ouvre une table', desc: 'ouverte à tous ou sur invitation, reçoit un numéro à 4 chiffres' },
     { title: 'Partage le numéro', desc: 'par Teams, QR code, ou lien direct' },
@@ -178,7 +182,7 @@ export default {
     { title: 'Lance la recherche', desc: 'reçoit 3 restaurants adaptés au groupe' },
   ],
   guideHowParticipant: [
-    { title: 'Rejoint', desc: 'avec le numéro reçu pour une table sur invitation, ou depuis Les buffets pour une table ouverte à tous' },
+    { title: 'Rejoint', desc: 'avec le numéro reçu' },
     { title: 'Indique ses envies', desc: 'cuisine, budget, allergies (sauté si "gamelle" ou "de mon côté")' },
     { title: 'Attend', desc: 'l\'écran se met à jour tout seul, rien à rafraîchir' },
     { title: 'Consulte les résultats', desc: '3 restaurants, avec adresse' },
@@ -191,7 +195,7 @@ export default {
     { icon: '💶', title: 'Budget le plus restrictif (via l\'IA)', desc: 'Si le groupe a des budgets différents, le plus bas est transmis en priorité à l\'IA quand elle est disponible. Sans elle, le budget n\'est pas garanti dans les 3 restaurants proposés.' },
     { icon: '📞', title: 'À l\'organisateur de choisir et réserver', desc: 'Les 3 restaurants proposés incluent adresse et téléphone : à l\'organisateur de choisir puis d\'appeler pour réserver.' },
     { icon: '📋', title: 'Mes tables', desc: 'Historique personnel de vos tables créées ou rejointes sur cet appareil. Les tables d\'un autre jour sont automatiquement archivées : une case à cocher permet de les réafficher.' },
-    { icon: '🌍', title: 'Les buffets', desc: 'L\'onglet qui liste les tables publiques ouvertes en ce moment, pour les rejoindre sans numéro (contrairement à une table sur invitation).' },
+    { icon: '🌍', title: 'Les buffets', desc: 'Bientôt disponible.' },
     { icon: '🪑', title: 'Une table active par jour', desc: 'Tant que tu as déjà une table aujourd\'hui, l\'accueil propose "Afficher ma table" à la place de "Je mets la table" / "J\'ai le numéro de table".' },
   ],
   guideLimitsTitle: 'Limites côté API',

@@ -1,5 +1,6 @@
 // Session service — Supabase backend (multi-device real-time sync)
 import { supabase } from './supabaseClient.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
 // ─── Code generation ──────────────────────────────────────────────────────────
 
@@ -224,12 +225,10 @@ export async function getPublicSessions() {
 
 // ─── Session history (localStorage) ──────────────────────────────────────────
 
-const HISTORY_KEY = 'atable_history'
-
 /** Reads the list of sessions the user has joined, stored locally */
 export function getSessionsHistory() {
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || '[]')
   } catch {
     return []
   }
@@ -239,13 +238,13 @@ export function getSessionsHistory() {
 export function addToHistory({ code, participantId, isOrganizer }) {
   const history = getSessionsHistory().filter(h => h.code !== code)
   history.unshift({ code, participantId, isOrganizer, joinedAt: Date.now() })
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 30)))
+  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history.slice(0, 30)))
 }
 
 /** Removes a session from the local history */
 export function removeFromHistory(code) {
   const history = getSessionsHistory().filter(h => h.code !== code)
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history))
 }
 
 // ─── Leave session ────────────────────────────────────────────────────────────

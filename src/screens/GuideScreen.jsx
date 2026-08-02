@@ -1,6 +1,8 @@
 // Static in-app documentation: how the app works, key features, and an
 // honest rundown of the free-API trade-offs — content lives in i18n so it
 // stays in sync with the rest of the app's language.
+import { useEffect } from 'react'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
 function StepLane({ icon, title, steps }) {
   return (
@@ -21,6 +23,10 @@ function StepLane({ icon, title, steps }) {
 }
 
 export default function GuideScreen({ t, onBack }) {
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.GUIDE_SEEN, '1')
+  }, [])
+
   return (
     <div className="screen">
       {/* Masthead */}
@@ -36,13 +42,27 @@ export default function GuideScreen({ t, onBack }) {
         <p style={{ marginTop: 10 }}>{t.guideIntro}</p>
       </div>
 
+      {/* Teaser video */}
+      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', border: '1.5px solid var(--ink)' }}>
+        <iframe
+          src="https://www.youtube.com/embed/nDazwzaJju0"
+          title="À TABLE! — teaser"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+        />
+      </div>
+
       <hr className="rule-thick" />
 
       {/* How it works */}
       <div className="flex-col" style={{ gap: 10 }}>
         <h2>{t.guideHowTitle}</h2>
+        <div className="waiting-banner" style={{ fontSize: 13 }}>
+          👑 {t.guideHowIntro}
+        </div>
         <div className="guide-flow">
-          <StepLane icon="🚀" title="Organisateur" steps={t.guideHowOrganizer} />
+          <StepLane icon="👑" title="Organisateur" steps={t.guideHowOrganizer} />
           <StepLane icon="🎟" title="Participant" steps={t.guideHowParticipant} />
         </div>
       </div>

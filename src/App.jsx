@@ -9,6 +9,15 @@ import WaitingRoomScreen from './screens/WaitingRoomScreen.jsx'
 import ResultsScreen from './screens/ResultsScreen.jsx'
 import GuideScreen from './screens/GuideScreen.jsx'
 import FeedbackScreen from './screens/FeedbackScreen.jsx'
+import MaintenanceScreen from './screens/MaintenanceScreen.jsx'
+import { STORAGE_KEYS } from './constants/storageKeys.js'
+
+// Unlisted maintenance page — reachable only via ?maintenance=<this token>, never linked
+// in the UI. Client-side only (see MaintenanceScreen.jsx). Not real security: this
+// constant ships in the public JS bundle like every other value in this prototype
+// (same trade-off already accepted for the exposed API keys) — treat the URL as a
+// shared secret to hand out carefully, not as an access-controlled admin panel.
+const MAINTENANCE_TOKEN = 'atable-secours-2026'
 
 export default function App() {
   const [lang] = useState(() => detectLang())
@@ -34,6 +43,12 @@ export default function App() {
       const params  = new URLSearchParams(window.location.search)
       const urlCode = params.get('code')
 
+      // Unlisted maintenance page — bypasses session restore entirely
+      if (params.get('maintenance') === MAINTENANCE_TOKEN) {
+        setScreen('maintenance')
+        return
+      }
+
       // Shareable direct link to the guide — bypasses session restore entirely
       if (params.has('guide')) {
         setScreen('guide')
@@ -44,8 +59,8 @@ export default function App() {
         return
       }
 
-      const storedCode = localStorage.getItem('atable_code')
-      const storedUid  = localStorage.getItem('atable_uid')
+      const storedCode = localStorage.getItem(STORAGE_KEYS.CODE)
+      const storedUid  = localStorage.getItem(STORAGE_KEYS.UID)
 
       // If URL has a code and no active session → go to Join
       if (urlCode && !storedCode) {
@@ -78,7 +93,7 @@ export default function App() {
       // Restore identity state
       setSessionCode(storedCode)
       setUserId(storedUid)
-      setIsOrganizer(localStorage.getItem('atable_organizer') === 'true')
+      setIsOrganizer(localStorage.getItem(STORAGE_KEYS.ORGANIZER) === 'true')
 
       if (!participant.prefsComplete) { setScreen('preferences'); return }
 
@@ -92,9 +107,9 @@ export default function App() {
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
   function persistIdentity({ code, uid, organizer }) {
-    localStorage.setItem('atable_code',      code)
-    localStorage.setItem('atable_uid',       uid)
-    localStorage.setItem('atable_organizer', String(organizer))
+    localStorage.setItem(STORAGE_KEYS.CODE,      code)
+    localStorage.setItem(STORAGE_KEYS.UID,       uid)
+    localStorage.setItem(STORAGE_KEYS.ORGANIZER, String(organizer))
     addToHistory({ code, participantId: uid, isOrganizer: organizer })
     setSessionCode(code)
     setUserId(uid)
@@ -102,9 +117,9 @@ export default function App() {
   }
 
   function clearIdentity() {
-    localStorage.removeItem('atable_code')
-    localStorage.removeItem('atable_uid')
-    localStorage.removeItem('atable_organizer')
+    localStorage.removeItem(STORAGE_KEYS.CODE)
+    localStorage.removeItem(STORAGE_KEYS.UID)
+    localStorage.removeItem(STORAGE_KEYS.ORGANIZER)
     setSessionCode(null)
     setUserId(null)
     setIsOrganizer(false)
@@ -188,6 +203,8 @@ export default function App() {
           }}
         />
       )}
+
+      {screen === 'maintenance' && <MaintenanceScreen />}
 
       {screen === 'guide' && (
         <GuideScreen

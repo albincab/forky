@@ -17,7 +17,7 @@ export default function PreferencesScreen({ t, sessionCode, userId, onBack, onDo
   const [cuisines,        setCuisines]        = useState([])
   const [budget,          setBudget]          = useState(null)
   const [allergies,       setAllergies]       = useState([])
-  const [moreThanOneHour, setMoreThanOneHour] = useState(false)
+  const [moreThanOneHour, setMoreThanOneHour] = useState(true)
   const [backBy14h,       setBackBy14h]       = useState(false)
   const [error,           setError]           = useState('')
   const [saving,          setSaving]          = useState(false)

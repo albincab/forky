@@ -3,7 +3,7 @@
 const MEAL_ICONS = { out: '🍽️', inplace: '🏠', outside: '🚶', takeout: '📦' }
 
 export default function ParticipantCard({ participant, t }) {
-  const { name, isOrganizer, mealMode, cuisines, budget, allergies, prefsComplete } = participant
+  const { name, isOrganizer, mealMode, cuisines, budget, allergies, moreThanOneHour, backBy14h, prefsComplete } = participant
   const initial = name.slice(0, 1).toUpperCase()
 
   const modeLabel = {
@@ -53,6 +53,15 @@ export default function ParticipantCard({ participant, t }) {
           {/* Budget */}
           {budget && mealMode !== 'inplace' && mealMode !== 'outside' && (
             <span className="tag tag-cuisine">{t.budgetOptions[budget]}</span>
+          )}
+
+          {/* Lunch duration constraints — moreThanOneHour defaults to true now, so only
+              the exceptions (explicitly less than 1h, or must be back by 14h) are shown */}
+          {mealMode === 'out' && prefsComplete && moreThanOneHour === false && (
+            <span className="tag tag-allergy">⏱️ {t.lessThanOneHour}</span>
+          )}
+          {backBy14h && (
+            <span className="tag tag-allergy">⏰ {t.backBy14h}</span>
           )}
 
           {/* Allergies (max 2) */}

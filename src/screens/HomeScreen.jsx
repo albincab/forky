@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import {
-  getPublicSessions,
   getSessionsHistory,
   getSession,
   leaveSession,
@@ -8,6 +7,7 @@ import {
   removeFromHistory,
 } from '../services/sessionService.js'
 import AppLogo from '../components/AppLogo.jsx'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
 const MEAL_ICONS = { out: '🍽️', inplace: '🏠', outside: '🚶' }
 const MEAL_LABEL_KEY = { out: 'mealOut', inplace: 'mealInPlace', outside: 'mealOutside' }
@@ -155,20 +155,13 @@ function LunchCard({ entry, t, onRejoin, onEdit, onCancel, onDelete }) {
 
 // ─── Main HomeScreen ───────────────────────────────────────────────────────────
 export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGuide, onFeedback }) {
-  const [tab, setTab] = useState('mine')
-
-  const [publicSessions, setPublicSessions] = useState([])
+  const [showGuideHint] = useState(() => !localStorage.getItem(STORAGE_KEYS.GUIDE_SEEN))
 
   const [myEntries,  setMyEntries]  = useState([])
   const [myLoading,  setMyLoading]  = useState(true)
   const [showArchived, setShowArchived] = useState(false)
 
   const activeToday = myEntries.find(e => isToday(e.session.createdAt))
-
-  async function refreshPublic() {
-    const sessions = await getPublicSessions()
-    setPublicSessions(sessions)
-  }
 
   async function loadMine() {
     const history = getSessionsHistory()
@@ -184,13 +177,6 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
     setMyEntries(resolved.filter(Boolean))
     setMyLoading(false)
   }
-
-  // Poll every 5 seconds for new public sessions
-  useEffect(() => {
-    refreshPublic()
-    const id = setInterval(refreshPublic, 5000)
-    return () => clearInterval(id)
-  }, [])
 
   useEffect(() => { loadMine() }, [])
 
@@ -230,6 +216,14 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
         </span>
       </div>
 
+      {/* First-visit nudge toward the Guide — gone for good once it's been visited */}
+      {showGuideHint && (
+        <button className="btn btn-cta" onClick={onGuide}>
+          <span>❓ {t.guideHintCta}</span>
+          <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>→</span>
+        </button>
+      )}
+
       {/* CTAs — only one active table per day: hide Create/Join once today's table exists */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {activeToday ? (
@@ -240,7 +234,7 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
         ) : (
           <>
             <button className="btn btn-primary" onClick={onCreate}>
-              <span>🚀 {t.ctaCreate}</span>
+              <span>👑 {t.ctaCreate}</span>
               <span style={{ fontFamily: "'Boldonse', serif", fontSize: 22 }}>→</span>
             </button>
             <button className="btn btn-secondary" onClick={() => onJoin(null)}>
@@ -253,25 +247,13 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
 
       <hr className="rule-thick" />
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button
-          className={tab === 'mine' ? 'btn-icon selected' : 'btn-icon'}
-          style={{ flex: 1 }}
-          onClick={() => setTab('mine')}
-        >
-          📋 {t.myLunches} ({myEntries.filter(e => isToday(e.session.createdAt)).length})
-        </button>
-        <button
-          className={tab === 'public' ? 'btn-icon selected' : 'btn-icon'}
-          style={{ flex: 1, opacity: publicSessions.length === 0 ? 0.45 : 1 }}
-          onClick={() => setTab('public')}
-        >
-          🥘 {t.publicSessionsTab} ({publicSessions.length})
-        </button>
+      {/* "Les buffets" hidden entirely while the self-join edge case gets stabilized —
+          only one section left, so this is a heading rather than a tab to switch. */}
+      <div className="btn-icon selected" style={{ width: '100%', flex: 'none' }}>
+        📋 {t.myLunches} ({myEntries.filter(e => isToday(e.session.createdAt)).length})
       </div>
 
-      {tab === 'mine' ? (
+      {(
         myLoading ? (
           <div className="spinner-wrap">
             <div className="spinner" />
@@ -318,43 +300,6 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
             )
           })()
         )
-      ) : (
-        <>
-          <p className="eyebrow" style={{ marginTop: -6 }}>{t.publicSessionsSubtitle}</p>
-          {publicSessions.length > 0 ? (
-            <div>
-              {publicSessions.map((session, i) => {
-                const cuisines = [...new Set(
-                  session.participants.flatMap(p => p.cuisines || [])
-                )].slice(0, 3).join(' · ')
-
-                return (
-                  <button
-                    key={session.code}
-                    className="menu-row"
-                    style={{ width: '100%', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer' }}
-                    onClick={() => onJoin(session.code)}
-                    aria-label={`Rejoindre le déjeuner de ${session.organizerName}`}
-                  >
-                    <span className="num">0{i + 1}</span>
-                    <div className="meta-block">
-                      <span className="name">{session.organizerName}</span>
-                      <span className="sub">
-                        {session.participants.length} pers.{cuisines ? ` · ${cuisines}` : ''} · 📅 {formatDate(session.createdAt)}
-                      </span>
-                    </div>
-                    <span className="code-badge">#{session.code}</span>
-                    <span className="arrow">→</span>
-                  </button>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="eyebrow" style={{ textAlign: 'center', padding: '12px 0' }}>
-              {t.publicSessionsEmpty}
-            </p>
-          )}
-        </>
       )}
 
       {/* Footer */}
@@ -382,7 +327,12 @@ export default function HomeScreen({ t, onCreate, onJoin, onRejoin, onEdit, onGu
             💬 {t.feedbackLink}
           </button>
         </div>
-        <span className="eyebrow">v{__APP_VERSION__}</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <a href="mailto:albincab@gmail.com" className="eyebrow" style={{ textDecoration: 'none' }}>
+            Albin Cabut
+          </a>
+          <span className="eyebrow">v{__APP_VERSION__}</span>
+        </div>
       </div>
     </div>
   )

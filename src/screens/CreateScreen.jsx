@@ -83,12 +83,14 @@ export default function CreateScreen({ t, onBack, onCreated }) {
               emoji: '🌐',
               title: t.sessionPublic,
               desc: t.sessionPublicDesc,
-              badge: '★ OUVERT',
+              badge: t.comingSoon,
+              disabled: true,
             },
           ].map(o => (
             <button
               key={o.key}
               type="button"
+              disabled={o.disabled}
               style={{
                 border: '1.5px solid var(--ink)',
                 background: type === o.key ? 'var(--yellow)' : 'var(--bg)',
@@ -97,13 +99,14 @@ export default function CreateScreen({ t, onBack, onCreated }) {
                 gap: 12,
                 alignItems: 'flex-start',
                 boxShadow: type === o.key ? '4px 4px 0 var(--ink)' : 'none',
-                cursor: 'pointer',
+                cursor: o.disabled ? 'not-allowed' : 'pointer',
+                opacity: o.disabled ? 0.45 : 1,
                 textAlign: 'left',
                 width: '100%',
                 borderRadius: 0,
                 transition: 'background 0.12s, box-shadow 0.12s',
               }}
-              onClick={() => setType(o.key)}
+              onClick={() => { if (!o.disabled) setType(o.key) }}
               aria-pressed={type === o.key}
             >
               <div style={{ fontSize: 30, lineHeight: 1 }}>{o.emoji}</div>
