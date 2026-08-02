@@ -1,6 +1,10 @@
 import { QRCodeSVG } from 'qrcode.react'
 
 export default function QRCodeModal({ url, t, onClose }) {
+  // The QR itself carries the full URL (incl. ?pwd=) — no need to expose the
+  // password in plain text on screen too.
+  const displayUrl = url.replace(/([?&])pwd=[^&]*&?/, '$1').replace(/[?&]$/, '')
+
   return (
     <div
       className="modal-overlay"
@@ -21,8 +25,18 @@ export default function QRCodeModal({ url, t, onClose }) {
           aria-label={`QR code pour rejoindre la table : ${url}`}
         />
 
-        <p className="text-center text-muted" style={{ fontSize: '0.8rem' }}>
-          {url}
+        <p
+          className="text-center text-muted"
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.7rem',
+            width: '100%',
+            wordBreak: 'break-all',
+            overflowWrap: 'anywhere',
+            margin: 0,
+          }}
+        >
+          {displayUrl}
         </p>
 
         <button className="btn btn-secondary btn-sm" onClick={onClose} style={{ width: 'auto' }}>

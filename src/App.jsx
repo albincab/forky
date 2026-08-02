@@ -10,7 +10,9 @@ import ResultsScreen from './screens/ResultsScreen.jsx'
 import GuideScreen from './screens/GuideScreen.jsx'
 import FeedbackScreen from './screens/FeedbackScreen.jsx'
 import MaintenanceScreen from './screens/MaintenanceScreen.jsx'
+import PasswordGateScreen from './screens/PasswordGateScreen.jsx'
 import { STORAGE_KEYS } from './constants/storageKeys.js'
+import { APP_PASSWORD } from './constants/appPassword.js'
 
 // Unlisted maintenance page — reachable only via ?maintenance=<this token>, never linked
 // in the UI. Client-side only (see MaintenanceScreen.jsx). Not real security: this
@@ -22,6 +24,29 @@ const MAINTENANCE_TOKEN = 'atable-secours-2026'
 export default function App() {
   const [lang] = useState(() => detectLang())
   const t = getTranslations(lang)
+
+  // Also unlocks from a QR code / shared link carrying ?pwd=<password> (e.g. combined
+  // with ?code=XXXX to join a table straight away) — no manual typing needed.
+  const [unlocked,  setUnlocked]  = useState(() => {
+    if (localStorage.getItem(STORAGE_KEYS.UNLOCKED) === 'true') return true
+    const urlPassword = new URLSearchParams(window.location.search).get('pwd')
+    if (urlPassword === APP_PASSWORD) {
+      localStorage.setItem(STORAGE_KEYS.UNLOCKED, 'true')
+      return true
+    }
+    return false
+  })
+  const [gateError, setGateError] = useState('')
+
+  // Strip ?pwd= from the visible URL/history once read, whether or not it matched —
+  // keeps any other param (e.g. ?code=XXXX) intact for the init effect below.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has('pwd')) return
+    params.delete('pwd')
+    const query = params.toString()
+    window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
+  }, [])
 
   // 'loading' while we check localStorage + Supabase on first mount
   const [screen, setScreen] = useState('loading')
@@ -38,6 +63,8 @@ export default function App() {
   // ─── Init: resolve screen from localStorage + Supabase ─────────────────────
   // localStorage (not sessionStorage) → persists after closing the browser tab
   useEffect(() => {
+    if (!unlocked) return // stay on the password gate — nothing below runs until unlocked
+
     async function init() {
       // Check for ?code= or ?guide= URL param first
       const params  = new URLSearchParams(window.location.search)
@@ -102,7 +129,7 @@ export default function App() {
     }
 
     init()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [unlocked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -171,6 +198,25 @@ export default function App() {
   }
 
   // ─── Render ──────────────────────────────────────────────────────────────────
+
+  if (!unlocked) {
+    return (
+      <div className="app">
+        <PasswordGateScreen
+          error={gateError}
+          onSubmit={password => {
+            if (password === APP_PASSWORD) {
+              localStorage.setItem(STORAGE_KEYS.UNLOCKED, 'true')
+              setGateError('')
+              setUnlocked(true)
+            } else {
+              setGateError('Mot de passe incorrect.')
+            }
+          }}
+        />
+      </div>
+    )
+  }
 
   if (screen === 'loading') {
     return (

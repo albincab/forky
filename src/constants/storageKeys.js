@@ -7,4 +7,5 @@ export const STORAGE_KEYS = {
   ORGANIZER:  'atable_organizer',
   HISTORY:    'atable_history',
   GUIDE_SEEN: 'atable_guide_seen',
+  UNLOCKED:   'atable_unlocked',
 }

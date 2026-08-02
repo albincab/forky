@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getSession } from '../services/sessionService.js'
 import RestaurantMap from '../components/RestaurantMap.jsx'
+import { APP_PASSWORD } from '../constants/appPassword.js'
 
 const BUDGET_ORDER = ['<15', '15-30', '30-50', '>50']
 
@@ -225,7 +226,7 @@ export default function ResultsScreen({ t, sessionCode, isOrganizer, onLeave, on
         <button
           className="iconbtn"
           onClick={() => {
-            const url = `${window.location.origin}${window.location.pathname}?code=${sessionCode}`
+            const url = `${window.location.origin}${window.location.pathname}?code=${sessionCode}&pwd=${encodeURIComponent(APP_PASSWORD)}`
             navigator.clipboard?.writeText(url).catch(() => {})
           }}
         >

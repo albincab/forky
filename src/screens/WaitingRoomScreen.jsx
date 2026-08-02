@@ -12,9 +12,10 @@ import { getRecommendations } from '../services/claudeService.js'
 import ParticipantCard from '../components/ParticipantCard.jsx'
 import QRCodeModal from '../components/QRCodeModal.jsx'
 import CodeStrip from '../components/CodeStrip.jsx'
+import { APP_PASSWORD } from '../constants/appPassword.js'
 
 function getSessionUrl(code) {
-  return `${window.location.origin}${window.location.pathname}?code=${code}`
+  return `${window.location.origin}${window.location.pathname}?code=${code}&pwd=${encodeURIComponent(APP_PASSWORD)}`
 }
 
 // ─── Main WaitingRoomScreen ───────────────────────────────────────────────────
