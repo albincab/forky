@@ -127,6 +127,9 @@ export default function FeedbackScreen({ t, onBack }) {
       {/* List */}
       <div className="flex-col" style={{ gap: 10 }}>
         <h2>{t.feedbackListTitle}</h2>
+        {items.length > 0 && (
+          <p className="eyebrow" style={{ marginTop: -6 }}>{t.feedbackVoteHint}</p>
+        )}
 
         {loading ? (
           <div className="spinner-wrap"><div className="spinner" /></div>
